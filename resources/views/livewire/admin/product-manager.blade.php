@@ -151,27 +151,37 @@
 
                 <form wire:submit="save" class="space-y-5">
 
-                    {{-- ── Nama & Slug ── --}}
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Nama Produk <span class="text-red-500">*</span></label>
-                            <input
-                                type="text"
-                                wire:model.blur="name"
-                                wire:blur="generateSlug"
-                                placeholder="Bouquet Mawar Merah"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none"
-                            >
-                            @error('name') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
-                        </div>
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1">Slug</label>
-                            <input
-                                type="text"
-                                wire:model="slug"
-                                class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none bg-gray-50"
-                            >
-                        </div>
+                    {{-- ── Nama + Slug Preview ── --}}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nama Produk <span class="text-red-500">*</span></label>
+                        <input
+                            type="text"
+                            wire:model.live.debounce.300ms="name"
+                            placeholder="Bouquet Mawar Merah"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none"
+                        >
+                        @error('name') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                        {{-- Slug preview realtime via Alpine --}}
+                        <p
+                            x-data="{
+                                get slug() {
+                                    return ($wire.name || '')
+                                        .toLowerCase()
+                                        .normalize('NFD')
+                                        .replace(/[\u0300-\u036f]/g, '')
+                                        .replace(/[^a-z0-9\s-]/g, '')
+                                        .trim()
+                                        .replace(/[\s_]+/g, '-')
+                                        .replace(/-+/g, '-');
+                                }
+                            }"
+                            class="mt-1.5 text-xs text-gray-400 flex items-center gap-1"
+                        >
+                            <svg class="w-3 h-3 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+                            </svg>
+                            <span>URL: /product/</span><span x-text="slug || '...'" class="font-mono text-gray-500"></span>
+                        </p>
                     </div>
 
                     {{-- ── Kategori & Status ── --}}

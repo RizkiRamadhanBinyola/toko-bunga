@@ -3,18 +3,14 @@
 namespace App\Livewire\Admin;
 
 use App\Models\Category;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Validate;
 use Livewire\Component;
-use Livewire\WithFileUploads;
 
 #[Layout('layouts.admin')]
 class CategoryManager extends Component
 {
-    use WithFileUploads;
-
     public bool $showModal = false;
     public ?int $editId = null;
 
@@ -23,9 +19,7 @@ class CategoryManager extends Component
 
     public string $slug = '';
     public ?string $parentId = null;
-    public $thumbnail = null;
     public bool $status = true;
-    public ?string $existingThumbnail = null;
 
     public function render()
     {
@@ -50,13 +44,12 @@ class CategoryManager extends Component
     public function openEdit(Category $category): void
     {
         $this->resetForm();
-        $this->editId = $category->id;
-        $this->name = $category->name;
-        $this->slug = $category->slug;
-        $this->parentId = $category->parent_id ? (string) $category->parent_id : null;
-        $this->status = $category->status;
-        $this->existingThumbnail = $category->thumbnail;
-        $this->showModal = true;
+        $this->editId     = $category->id;
+        $this->name       = $category->name;
+        $this->slug       = $category->slug;
+        $this->parentId   = $category->parent_id ? (string) $category->parent_id : null;
+        $this->status     = $category->status;
+        $this->showModal  = true;
     }
 
     public function save(): void
@@ -69,13 +62,6 @@ class CategoryManager extends Component
             'parent_id' => $this->parentId ?: null,
             'status'    => $this->status,
         ];
-
-        if ($this->thumbnail) {
-            if ($this->existingThumbnail) {
-                Storage::disk('public')->delete($this->existingThumbnail);
-            }
-            $data['thumbnail'] = $this->thumbnail->store('categories', 'public');
-        }
 
         $isEdit = (bool) $this->editId;
 
@@ -95,22 +81,17 @@ class CategoryManager extends Component
 
     public function delete(Category $category): void
     {
-        if ($category->thumbnail) {
-            Storage::disk('public')->delete($category->thumbnail);
-        }
         $category->delete();
         $this->dispatch('show-toast', message: 'Kategori berhasil dihapus.', type: 'success');
     }
 
     public function resetForm(): void
     {
-        $this->editId = null;
-        $this->name = '';
-        $this->slug = '';
+        $this->editId   = null;
+        $this->name     = '';
+        $this->slug     = '';
         $this->parentId = null;
-        $this->thumbnail = null;
-        $this->status = true;
-        $this->existingThumbnail = null;
+        $this->status   = true;
     }
 
     public function closeModal(): void
