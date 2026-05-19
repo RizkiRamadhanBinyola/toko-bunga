@@ -154,9 +154,11 @@ class ProductDetail extends Component
         // Susun label varian
         $variantLabel = null;
         if ($variant) {
-            $variantLabel = ($variant->description && $variant->description !== '')
-                ? $variant->description
-                : 'Varian ' . ($this->product->variants->search(fn ($v) => $v->id === $variant->id) + 1);
+            $variantLabel = ($variant->name && $variant->name !== '')
+                ? $variant->name
+                : (($variant->description && $variant->description !== '')
+                    ? $variant->description
+                    : 'Varian ' . ($this->product->variants->search(fn ($v) => $v->id === $variant->id) + 1));
         }
 
         // Format tanggal lebih ramah
