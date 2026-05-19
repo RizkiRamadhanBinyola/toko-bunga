@@ -209,19 +209,25 @@
                         <p class="text-sm font-semibold text-gray-700 mb-3">Pilih Varian:</p>
                         <div class="flex flex-wrap gap-2">
                             @foreach($product->variants as $variant)
+                                @php $isActive = $selectedVariantId === $variant->id; @endphp
                                 <button
                                     wire:click="selectVariant({{ $variant->id }})"
                                     class="px-4 py-2.5 rounded-xl border-2 text-sm font-medium transition-all text-left
-                                        {{ $selectedVariantId === $variant->id
+                                        {{ $isActive
                                             ? 'border-rose-500 bg-rose-50 text-rose-700 shadow-sm shadow-rose-100'
                                             : 'border-gray-200 text-gray-600 hover:border-rose-300 hover:text-rose-600' }}"
                                 >
-                                    @if($variant->description)
-                                        {{ Str::limit($variant->description, 40) }}
+                                    {{-- Nama varian sebagai label utama --}}
+                                    @if($variant->name)
+                                        {{ $variant->name }}
+                                    @elseif($variant->description)
+                                        {{ Str::limit($variant->description, 30) }}
                                     @else
                                         Varian {{ $loop->iteration }}
                                     @endif
-                                    <span class="block text-xs mt-0.5 font-semibold {{ $selectedVariantId === $variant->id ? 'text-rose-500' : 'text-gray-400' }}">
+
+                                    {{-- Harga --}}
+                                    <span class="block text-xs mt-0.5 font-semibold {{ $isActive ? 'text-rose-500' : 'text-gray-400' }}">
                                         Rp {{ number_format((float) ($variant->price ?? $product->price), 0, ',', '.') }}
                                     </span>
                                 </button>
@@ -240,52 +246,44 @@
                     <h2 class="text-base font-semibold text-gray-900 mb-4">Form Pemesanan</h2>
                     <form wire:submit="submitOrder" class="space-y-4">
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Nama Pemesan <span class="text-red-500">*</span></label>
-                                <input type="text" wire:model="customerName" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none">
-                                @error('customerName') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">No. WhatsApp <span class="text-red-500">*</span></label>
-                                <input type="text" wire:model="customerPhone" placeholder="081234567890" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none">
-                                @error('customerPhone') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
-                            </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nama Pemesan <span class="text-red-500">*</span></label>
+                            <p class="text-xs text-gray-400 mb-1.5">Nama Anda sebagai pemesan dan pengirim</p>
+                            <input type="text" wire:model="customerName" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none">
+                            @error('customerName') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                         </div>
 
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Nama Pengirim <span class="text-red-500">*</span></label>
-                                <input type="text" wire:model="senderName" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none">
-                                @error('senderName') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Nama Penerima <span class="text-red-500">*</span></label>
-                                <input type="text" wire:model="recipientName" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none">
-                                @error('recipientName') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
-                            </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nama Penerima <span class="text-red-500">*</span></label>
+                            <p class="text-xs text-gray-400 mb-1.5">Nama orang yang akan menerima bunga ini</p>
+                            <input type="text" wire:model="recipientName" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none">
+                            @error('recipientName') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Alamat Tujuan <span class="text-red-500">*</span></label>
+                            <p class="text-xs text-gray-400 mb-1.5">Lokasi lengkap pengiriman bunga (nama jalan, gedung, kota, dll)</p>
                             <textarea wire:model="deliveryAddress" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none"></textarea>
                             @error('deliveryAddress') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Kirim <span class="text-red-500">*</span></label>
+                            <p class="text-xs text-gray-400 mb-1.5">Pilih tanggal kapan bunga akan dikirimkan</p>
                             <input type="date" wire:model="deliveryDate" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none">
                             @error('deliveryDate') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Ucapan <span class="text-gray-400 font-normal">(opsional)</span></label>
+                            <p class="text-xs text-gray-400 mb-1.5">Teks yang akan disertakan pada bunga, misalnya "Selamat Ulang Tahun"</p>
                             <textarea wire:model="greetingMessage" rows="2" placeholder="Tulis ucapan yang ingin disertakan..." class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none"></textarea>
                         </div>
 
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Catatan <span class="text-gray-400 font-normal">(opsional)</span></label>
-                            <textarea wire:model="notes" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none"></textarea>
+                            <p class="text-xs text-gray-400 mb-1.5">Informasi tambahan untuk penjual (misal: warna, ukuran, permintaan khusus)</p>
+                            <textarea wire:model="notes" rows="2" placeholder="Contoh: bungkus warna merah, tambah pita" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none"></textarea>
                         </div>
 
                         <button
@@ -306,29 +304,54 @@
         @if($relatedProducts->isNotEmpty())
             <section class="mt-16">
                 <h2 class="text-2xl font-bold text-gray-900">Produk Terkait</h2>
-                <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                     @foreach($relatedProducts as $related)
                         @php $relImg = $related->display_image; @endphp
-                        <a href="{{ route('product.show', $related->slug) }}" wire:navigate class="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg transition-all">
-                            <div class="aspect-square bg-gray-50 overflow-hidden">
+                        <div class="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl hover:shadow-rose-50 hover:-translate-y-0.5 transition-all duration-300 flex flex-col">
+                            <a href="{{ route('product.show', $related->slug) }}" wire:navigate class="block relative aspect-square bg-gray-50 overflow-hidden">
                                 @if($relImg)
-                                    <img src="{{ Storage::url($relImg) }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                    <img src="{{ Storage::url($relImg) }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
                                 @else
                                     <div class="w-full h-full flex items-center justify-center">
-                                        <svg class="w-12 h-12 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                        <svg class="w-14 h-14 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                     </div>
                                 @endif
-                            </div>
-                            <div class="p-4">
-                                <div class="text-xs text-rose-500 font-medium">{{ $related->category?->name }}</div>
-                                <h3 class="mt-1 font-medium text-gray-900 group-hover:text-rose-600 transition">{{ $related->name }}</h3>
-                                @if($related->starting_price)
-                                    <p class="mt-1 text-sm font-semibold text-gray-900">
-                                        {{ $related->variants->count() > 1 ? 'Mulai ' : '' }}Rp {{ number_format((float) $related->starting_price, 0, ',', '.') }}
-                                    </p>
+
+                                <div class="absolute top-2 left-2 z-10">
+                                    <span class="px-2 py-0.5 bg-white/90 backdrop-blur-sm text-rose-600 text-[11px] font-semibold rounded-full shadow-sm">
+                                        {{ $related->category?->name }}
+                                    </span>
+                                </div>
+
+                                @if($related->variants->count() > 1)
+                                    <div class="absolute top-2 right-2 z-10">
+                                        <span class="px-2 py-0.5 bg-black/40 backdrop-blur-sm text-white text-xs font-medium rounded-full">
+                                            {{ $related->variants->count() }} varian
+                                        </span>
+                                    </div>
                                 @endif
+                            </a>
+
+                            <a href="{{ route('product.show', $related->slug) }}" wire:navigate class="block p-4 flex-1">
+                                <h3 class="font-semibold text-gray-900 group-hover:text-rose-600 transition line-clamp-2">{{ $related->name }}</h3>
+                                @if($related->starting_price)
+                                    <p class="mt-1.5 text-base font-bold text-gray-900">
+                                        @if($related->variants->count() > 1)
+                                            <span class="text-xs font-normal text-gray-400 mr-0.5">Mulai</span>
+                                        @endif
+                                        Rp {{ number_format((float) $related->starting_price, 0, ',', '.') }}
+                                    </p>
+                                @else
+                                    <p class="mt-1.5 text-xs text-gray-400">Hubungi untuk harga</p>
+                                @endif
+                            </a>
+
+                            <div class="px-4 pb-4 pt-0">
+                                <a href="{{ route('product.show', $related->slug) }}" wire:navigate class="block w-full text-center py-2.5 bg-rose-50 text-rose-600 text-sm font-medium rounded-xl hover:bg-rose-100 hover:text-rose-700 active:bg-rose-200 transition-all">
+                                    Lihat Detail
+                                </a>
                             </div>
-                        </a>
+                        </div>
                     @endforeach
                 </div>
             </section>

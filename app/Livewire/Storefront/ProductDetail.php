@@ -19,8 +19,6 @@ class ProductDetail extends Component
 
     // Order form
     public string $customerName    = '';
-    public string $customerPhone   = '';
-    public string $senderName      = '';
     public string $recipientName   = '';
     public string $deliveryAddress = '';
     public string $deliveryDate    = '';
@@ -138,8 +136,6 @@ class ProductDetail extends Component
     {
         $this->validate([
             'customerName'    => 'required|min:2|max:255',
-            'customerPhone'   => 'required|min:8|max:20',
-            'senderName'      => 'required|min:2|max:255',
             'recipientName'   => 'required|min:2|max:255',
             'deliveryAddress' => 'required|min:5|max:1000',
             'deliveryDate'    => 'required|date',
@@ -193,12 +189,11 @@ class ProductDetail extends Component
         $msg .= "*DATA PEMESAN*\n";
         $msg .= $line . "\n";
         $msg .= "Nama Pemesan : {$this->customerName}\n";
-        $msg .= "No. WA       : {$this->customerPhone}\n";
 
         $msg .= "\n" . $line . "\n";
         $msg .= "*DATA PENGIRIMAN*\n";
         $msg .= $line . "\n";
-        $msg .= "Pengirim     : {$this->senderName}\n";
+        $msg .= "Pengirim     : {$this->customerName}\n";
         $msg .= "Penerima     : {$this->recipientName}\n";
         $msg .= "Alamat       : {$this->deliveryAddress}\n";
         $msg .= "Tgl Kirim    : {$deliveryDateFormatted}\n";

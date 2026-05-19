@@ -276,7 +276,12 @@
                                     <div class="border border-gray-200 rounded-xl p-4 bg-gray-50/50 relative">
                                         {{-- Variant header --}}
                                         <div class="flex items-center justify-between mb-3">
-                                            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Varian {{ $i + 1 }}</span>
+                                            <span class="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                                                Varian {{ $i + 1 }}
+                                                @if(!empty($variant['name']))
+                                                    — <span class="text-rose-500 normal-case">{{ $variant['name'] }}</span>
+                                                @endif
+                                            </span>
                                             <button
                                                 type="button"
                                                 wire:click="removeVariant({{ $i }})"
@@ -289,7 +294,38 @@
                                             </button>
                                         </div>
 
-                                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                        {{-- Baris 1: Nama & Harga --}}
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                                            {{-- Nama varian --}}
+                                            <div>
+                                                <label class="block text-xs font-medium text-gray-600 mb-1">
+                                                    Nama Varian <span class="text-red-400">*</span>
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    wire:model="variants.{{ $i }}.name"
+                                                    placeholder="Contoh: Small, Medium, Large..."
+                                                    class="w-full px-2.5 py-2 border border-gray-300 rounded-lg text-xs focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none"
+                                                >
+                                                @error("variants.{$i}.name") <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                                            </div>
+
+                                            {{-- Harga varian --}}
+                                            <div>
+                                                <label class="block text-xs font-medium text-gray-600 mb-1">Harga (Rp)</label>
+                                                <input
+                                                    type="number"
+                                                    wire:model="variants.{{ $i }}.price"
+                                                    placeholder="Kosong = pakai harga dasar"
+                                                    min="0"
+                                                    class="w-full px-2.5 py-2 border border-gray-300 rounded-lg text-xs focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none"
+                                                >
+                                                @error("variants.{$i}.price") <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                                            </div>
+                                        </div>
+
+                                        {{-- Baris 2: Foto & Deskripsi --}}
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                             {{-- Foto varian --}}
                                             <div>
                                                 <label class="block text-xs font-medium text-gray-600 mb-1">Foto</label>
@@ -318,22 +354,9 @@
                                                 <textarea
                                                     wire:model="variants.{{ $i }}.description"
                                                     rows="3"
-                                                    placeholder="Ukuran, detail, dll..."
+                                                    placeholder="Detail tambahan varian..."
                                                     class="w-full px-2.5 py-2 border border-gray-300 rounded-lg text-xs focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none resize-none"
                                                 ></textarea>
-                                            </div>
-
-                                            {{-- Harga varian --}}
-                                            <div>
-                                                <label class="block text-xs font-medium text-gray-600 mb-1">Harga (Rp)</label>
-                                                <input
-                                                    type="number"
-                                                    wire:model="variants.{{ $i }}.price"
-                                                    placeholder="Kosong = pakai harga dasar"
-                                                    min="0"
-                                                    class="w-full px-2.5 py-2 border border-gray-300 rounded-lg text-xs focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none"
-                                                >
-                                                @error("variants.{$i}.price") <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                                             </div>
                                         </div>
                                     </div>

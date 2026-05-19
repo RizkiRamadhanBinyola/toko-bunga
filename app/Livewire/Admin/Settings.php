@@ -15,11 +15,14 @@ class Settings extends Component
 
     public string $storeAddress = '';
 
+    public string $storeDescription = '';
+
     public function mount(): void
     {
         $this->whatsappNumber = SettingModel::get('whatsapp_number', '');
         $this->storeName = SettingModel::get('store_name', '');
         $this->storeAddress = SettingModel::get('store_address', '');
+        $this->storeDescription = SettingModel::get('store_description', '');
     }
 
     public function save(): void
@@ -28,11 +31,13 @@ class Settings extends Component
             'whatsappNumber' => 'nullable|string|max:30',
             'storeName' => 'nullable|string|max:255',
             'storeAddress' => 'nullable|string|max:500',
+            'storeDescription' => 'nullable|string|max:500',
         ]);
 
         SettingModel::set('whatsapp_number', $this->whatsappNumber);
         SettingModel::set('store_name', $this->storeName);
         SettingModel::set('store_address', $this->storeAddress);
+        SettingModel::set('store_description', $this->storeDescription);
 
         session()->flash('message', 'Pengaturan berhasil disimpan.');
     }

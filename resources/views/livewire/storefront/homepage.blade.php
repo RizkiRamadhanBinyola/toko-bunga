@@ -62,29 +62,54 @@
                 </a>
             </div>
 
-            <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div class="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
                 @forelse($latestProducts as $product)
                     @php $img = $product->display_image; @endphp
-                    <a href="{{ route('product.show', $product->slug) }}" wire:navigate class="group bg-white rounded-xl border border-gray-100 overflow-hidden hover:shadow-lg hover:shadow-rose-50 transition-all">
-                        <div class="aspect-[4/3] bg-gray-50 overflow-hidden">
+                    <div class="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl hover:shadow-rose-50 hover:-translate-y-0.5 transition-all duration-300 flex flex-col">
+                        <a href="{{ route('product.show', $product->slug) }}" wire:navigate class="block relative aspect-square bg-gray-50 overflow-hidden">
                             @if($img)
-                                <img src="{{ Storage::url($img) }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                                <img src="{{ Storage::url($img) }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
                             @else
                                 <div class="w-full h-full flex items-center justify-center">
-                                    <svg class="w-12 h-12 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                    <svg class="w-14 h-14 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                                 </div>
                             @endif
-                        </div>
-                        <div class="p-4">
-                            <div class="text-xs text-rose-500 font-medium">{{ $product->category?->name }}</div>
-                            <h3 class="mt-1 font-medium text-gray-900 group-hover:text-rose-600 transition">{{ $product->name }}</h3>
-                            @if($product->starting_price)
-                                <p class="mt-2 text-lg font-semibold text-gray-900">
-                                    {{ $product->variants->count() > 1 ? 'Mulai ' : '' }}Rp {{ number_format((float) $product->starting_price, 0, ',', '.') }}
-                                </p>
+
+                            <div class="absolute top-2 left-2 z-10">
+                                <span class="px-2 py-0.5 bg-white/90 backdrop-blur-sm text-rose-600 text-[11px] font-semibold rounded-full shadow-sm">
+                                    {{ $product->category?->name }}
+                                </span>
+                            </div>
+
+                            @if($product->variants->count() > 1)
+                                <div class="absolute top-2 right-2 z-10">
+                                    <span class="px-2 py-0.5 bg-black/40 backdrop-blur-sm text-white text-xs font-medium rounded-full">
+                                        {{ $product->variants->count() }} varian
+                                    </span>
+                                </div>
                             @endif
+                        </a>
+
+                        <a href="{{ route('product.show', $product->slug) }}" wire:navigate class="block p-4 flex-1">
+                            <h3 class="font-semibold text-gray-900 group-hover:text-rose-600 transition line-clamp-2">{{ $product->name }}</h3>
+                            @if($product->starting_price)
+                                <p class="mt-1.5 text-base font-bold text-gray-900">
+                                    @if($product->variants->count() > 1)
+                                        <span class="text-xs font-normal text-gray-400 mr-0.5">Mulai</span>
+                                    @endif
+                                    Rp {{ number_format((float) $product->starting_price, 0, ',', '.') }}
+                                </p>
+                            @else
+                                <p class="mt-1.5 text-xs text-gray-400">Hubungi untuk harga</p>
+                            @endif
+                        </a>
+
+                        <div class="px-4 pb-4 pt-0">
+                            <a href="{{ route('product.show', $product->slug) }}" wire:navigate class="block w-full text-center py-2.5 bg-rose-50 text-rose-600 text-sm font-medium rounded-xl hover:bg-rose-100 hover:text-rose-700 active:bg-rose-200 transition-all">
+                                Lihat Detail
+                            </a>
                         </div>
-                    </a>
+                    </div>
                 @empty
                     <p class="col-span-full text-center text-gray-400 py-12">Belum ada produk.</p>
                 @endforelse

@@ -82,6 +82,7 @@ class ProductManager extends Component
 
         $this->variants = $product->variants->map(fn (ProductVariant $v) => [
             'id'            => $v->id,
+            'name'          => $v->name ?? '',
             'image'         => null,
             'existingImage' => $v->image,
             'description'   => $v->description ?? '',
@@ -104,6 +105,7 @@ class ProductManager extends Component
     {
         $this->variants[] = [
             'id'            => null,
+            'name'          => '',
             'image'         => null,
             'existingImage' => null,
             'description'   => '',
@@ -173,6 +175,7 @@ class ProductManager extends Component
 
         foreach ($this->variants as $index => $v) {
             $variantData = [
+                'name'        => $v['name'] ?: null,
                 'description' => $v['description'] ?: null,
                 'price'       => $v['price'] !== '' ? $v['price'] : null,
                 'sort_order'  => $index,

@@ -240,96 +240,114 @@
                                         : ($product->thumbnail ? [$product->thumbnail] : []);
                                 @endphp
 
-                                <a
-                                    href="{{ route('product.show', $product->slug) }}"
-                                    wire:navigate
-                                    class="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl hover:shadow-rose-50 hover:-translate-y-0.5 transition-all duration-300"
+                                <div
+                                    class="group bg-white rounded-2xl border border-gray-100 overflow-hidden hover:shadow-xl hover:shadow-rose-50 hover:-translate-y-0.5 transition-all duration-300 flex flex-col"
                                 >
                                     {{-- Image carousel per card --}}
-                                    <div
-                                        x-data="{
-                                            current: 0,
-                                            images: {{ json_encode($images) }},
-                                            timer: null,
-                                            start() {
-                                                if (this.images.length <= 1) return;
-                                                this.timer = setInterval(() => {
-                                                    this.current = this.current === this.images.length - 1 ? 0 : this.current + 1;
-                                                }, 8000);
-                                            },
-                                            stop() { clearInterval(this.timer); this.timer = null; }
-                                        }"
-                                        x-init="start()"
-                                        class="relative aspect-square bg-gray-50 overflow-hidden"
-                                        @click.prevent
-                                        @mouseenter="stop()"
-                                        @mouseleave="start()"
-                                    >
-                                        @if(count($images) > 0)
-                                            <template x-for="(img, i) in images" :key="i">
-                                                <div
-                                                    x-show="current === i"
-                                                    x-transition:enter="transition ease-out duration-700"
-                                                    x-transition:enter-start="opacity-0"
-                                                    x-transition:enter-end="opacity-100"
-                                                    x-transition:leave="transition ease-in duration-300"
-                                                    x-transition:leave-start="opacity-100"
-                                                    x-transition:leave-end="opacity-0"
-                                                    class="absolute inset-0"
-                                                >
-                                                    <img
-                                                        :src="'/storage/' + img"
-                                                        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                                                        alt="{{ $product->name }}"
-                                                    >
-                                                </div>
-                                            </template>
-                                        @else
-                                            <div class="w-full h-full flex items-center justify-center">
-                                                <svg class="w-14 h-14 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                                </svg>
-                                            </div>
-                                        @endif
-
-                                        {{-- Dot indicators --}}
-                                        @if(count($images) > 1)
-                                            <div class="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-10">
+                                    <a href="{{ route('product.show', $product->slug) }}" wire:navigate class="block relative aspect-square bg-gray-50 overflow-hidden">
+                                        <div
+                                            x-data="{
+                                                current: 0,
+                                                images: {{ json_encode($images) }},
+                                                timer: null,
+                                                start() {
+                                                    if (this.images.length <= 1) return;
+                                                    this.timer = setInterval(() => {
+                                                        this.current = this.current === this.images.length - 1 ? 0 : this.current + 1;
+                                                    }, 8000);
+                                                },
+                                                stop() { clearInterval(this.timer); this.timer = null; }
+                                            }"
+                                            x-init="start()"
+                                            class="relative w-full h-full"
+                                            @mouseenter="stop()"
+                                            @mouseleave="start()"
+                                        >
+                                            @if(count($images) > 0)
                                                 <template x-for="(img, i) in images" :key="i">
                                                     <div
-                                                        class="rounded-full transition-all duration-300"
-                                                        :class="current === i ? 'w-4 h-1.5 bg-white' : 'w-1.5 h-1.5 bg-white/50'"
-                                                    ></div>
+                                                        x-show="current === i"
+                                                        x-transition:enter="transition ease-out duration-700"
+                                                        x-transition:enter-start="opacity-0"
+                                                        x-transition:enter-end="opacity-100"
+                                                        x-transition:leave="transition ease-in duration-300"
+                                                        x-transition:leave-start="opacity-100"
+                                                        x-transition:leave-end="opacity-0"
+                                                        class="absolute inset-0"
+                                                    >
+                                                        <img
+                                                            :src="'/storage/' + img"
+                                                            class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                                                            alt="{{ $product->name }}"
+                                                        >
+                                                    </div>
                                                 </template>
-                                            </div>
-                                        @endif
+                                            @else
+                                                <div class="w-full h-full flex items-center justify-center">
+                                                    <svg class="w-14 h-14 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                                    </svg>
+                                                </div>
+                                            @endif
 
-                                        {{-- Variant count badge --}}
-                                        @if($product->variants->count() > 1)
-                                            <div class="absolute top-2 right-2 z-10">
-                                                <span class="px-2 py-0.5 bg-black/40 backdrop-blur-sm text-white text-xs font-medium rounded-full">
-                                                    {{ $product->variants->count() }} varian
+                                            {{-- Dot indicators --}}
+                                            @if(count($images) > 1)
+                                                <div class="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1 z-10">
+                                                    <template x-for="(img, i) in images" :key="i">
+                                                        <div
+                                                            class="rounded-full transition-all duration-300"
+                                                            :class="current === i ? 'w-4 h-1.5 bg-white' : 'w-1.5 h-1.5 bg-white/50'"
+                                                        ></div>
+                                                    </template>
+                                                </div>
+                                            @endif
+
+                                            {{-- Category badge overlay --}}
+                                            <div class="absolute top-2 left-2 z-10">
+                                                <span class="px-2 py-0.5 bg-white/90 backdrop-blur-sm text-rose-600 text-[11px] font-semibold rounded-full shadow-sm">
+                                                    {{ $product->category?->name }}
                                                 </span>
                                             </div>
-                                        @endif
-                                    </div>
+
+                                            {{-- Variant count badge --}}
+                                            @if($product->variants->count() > 1)
+                                                <div class="absolute top-2 right-2 z-10">
+                                                    <span class="px-2 py-0.5 bg-black/40 backdrop-blur-sm text-white text-xs font-medium rounded-full">
+                                                        {{ $product->variants->count() }} varian
+                                                    </span>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </a>
 
                                     {{-- Card info --}}
-                                    <a href="{{ route('product.show', $product->slug) }}" wire:navigate class="block p-4">
-                                        <div class="text-xs text-rose-500 font-medium">{{ $product->category?->name }}</div>
-                                        <h3 class="mt-1 font-semibold text-gray-900 group-hover:text-rose-600 transition line-clamp-2">
+                                    <a href="{{ route('product.show', $product->slug) }}" wire:navigate class="block p-4 flex-1">
+                                        <h3 class="font-semibold text-gray-900 group-hover:text-rose-600 transition line-clamp-2">
                                             {{ $product->name }}
                                         </h3>
                                         @if($product->starting_price)
-                                            <p class="mt-2 text-base font-bold text-gray-900">
+                                            <p class="mt-1.5 text-base font-bold text-gray-900">
                                                 @if($product->variants->count() > 1)
                                                     <span class="text-xs font-normal text-gray-400 mr-0.5">Mulai</span>
                                                 @endif
                                                 Rp {{ number_format((float) $product->starting_price, 0, ',', '.') }}
                                             </p>
+                                        @else
+                                            <p class="mt-1.5 text-xs text-gray-400">Hubungi untuk harga</p>
                                         @endif
                                     </a>
-                                </a>
+
+                                    {{-- CTA --}}
+                                    <div class="px-4 pb-4 pt-0">
+                                        <a
+                                            href="{{ route('product.show', $product->slug) }}"
+                                            wire:navigate
+                                            class="block w-full text-center py-2.5 bg-rose-50 text-rose-600 text-sm font-medium rounded-xl hover:bg-rose-100 hover:text-rose-700 active:bg-rose-200 transition-all"
+                                        >
+                                            Lihat Detail
+                                        </a>
+                                    </div>
+                                </div>
                             @endforeach
                         </div>
 

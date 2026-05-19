@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Waktu pembuatan: 17 Bulan Mei 2026 pada 02.29
+-- Waktu pembuatan: 19 Bulan Mei 2026 pada 22.33
 -- Versi server: 10.4.32-MariaDB
 -- Versi PHP: 8.2.12
 
@@ -56,7 +56,6 @@ CREATE TABLE `categories` (
   `name` varchar(255) NOT NULL,
   `slug` varchar(255) NOT NULL,
   `parent_id` bigint(20) UNSIGNED DEFAULT NULL,
-  `thumbnail` varchar(255) DEFAULT NULL,
   `status` tinyint(1) NOT NULL DEFAULT 1,
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL
@@ -66,19 +65,23 @@ CREATE TABLE `categories` (
 -- Dumping data untuk tabel `categories`
 --
 
-INSERT INTO `categories` (`id`, `name`, `slug`, `parent_id`, `thumbnail`, `status`, `created_at`, `updated_at`) VALUES
-(1, 'Fresh Flowers', 'fresh-flowers', NULL, NULL, 1, '2026-05-16 12:22:07', '2026-05-16 12:22:07'),
-(2, 'Bouquet', 'bouquet', 1, 'categories/fiHxUZaWERnYq6ECYaRTw6fHTvg60068hgextYxe.jpg', 1, '2026-05-16 12:22:07', '2026-05-16 15:48:21'),
-(3, 'Rustic Bouquet', 'rustic-bouquet', 1, NULL, 1, '2026-05-16 12:22:07', '2026-05-16 12:22:07'),
-(4, 'Standing Flower', 'standing-flower', 1, NULL, 1, '2026-05-16 12:22:07', '2026-05-16 12:22:07'),
-(5, 'Occasion', 'occasion', NULL, NULL, 1, '2026-05-16 12:22:07', '2026-05-16 12:22:07'),
-(6, 'Wedding', 'wedding', 5, NULL, 1, '2026-05-16 12:22:07', '2026-05-16 12:22:07'),
-(7, 'Sympathy', 'sympathy', 5, NULL, 1, '2026-05-16 12:22:07', '2026-05-16 12:22:07'),
-(8, 'Congratulation', 'congratulation', 5, NULL, 1, '2026-05-16 12:22:07', '2026-05-16 12:22:07'),
-(9, 'Grand Opening', 'grand-opening', NULL, NULL, 1, '2026-05-16 12:22:07', '2026-05-16 12:22:07'),
-(10, 'Standing Banner', 'standing-banner', 9, NULL, 1, '2026-05-16 12:22:07', '2026-05-16 12:22:07'),
-(11, 'Table Flower', 'table-flower', 9, NULL, 1, '2026-05-16 12:22:07', '2026-05-16 12:22:07'),
-(12, 'Premium Arrangement', 'premium-arrangement', 9, NULL, 1, '2026-05-16 12:22:07', '2026-05-16 12:22:07');
+INSERT INTO `categories` (`id`, `name`, `slug`, `parent_id`, `status`, `created_at`, `updated_at`) VALUES
+(1, 'Bunga papan', 'bunga-papan', NULL, 1, '2026-05-19 12:10:27', '2026-05-19 12:10:27'),
+(2, 'Selamat dan Sukses', 'selamat-dan-sukses', 1, 1, '2026-05-19 12:11:16', '2026-05-19 12:11:16'),
+(3, 'Grand Opening', 'grand-opening', 1, 1, '2026-05-19 12:11:33', '2026-05-19 12:11:33'),
+(4, 'Duka Cita', 'duka-cita', 1, 1, '2026-05-19 12:11:47', '2026-05-19 12:11:47'),
+(6, 'Bouquet Mawar Merah', 'red-rose-premium-bouquet', 8, 1, '2026-05-19 12:58:44', '2026-05-19 13:03:55'),
+(8, 'Bouquet', 'bouquet', NULL, 1, '2026-05-19 13:03:27', '2026-05-19 13:03:27'),
+(9, 'Bouquet Wisuda ', 'bouquet-wisuda', 8, 1, '2026-05-19 13:04:16', '2026-05-19 13:04:16'),
+(10, 'Standing Flowers', 'standing-flowers', NULL, 1, '2026-05-19 13:06:21', '2026-05-19 13:06:21'),
+(11, 'Standing Flowers Pernikahan', 'standing-flowers-pernikahan', 10, 1, '2026-05-19 13:06:34', '2026-05-19 13:06:34'),
+(12, 'Standing Flowers Grand Opening', 'standing-flowers-grand-opening', 10, 1, '2026-05-19 13:08:26', '2026-05-19 13:08:26'),
+(13, 'Flower Box', 'flower-box', NULL, 1, '2026-05-19 13:09:40', '2026-05-19 13:09:40'),
+(14, 'Flower Box Mawar', 'flower-box-mawar', 13, 1, '2026-05-19 13:09:51', '2026-05-19 13:09:51'),
+(15, 'Flower Box Anniversary', 'flower-box-anniversary', 13, 1, '2026-05-19 13:10:00', '2026-05-19 13:10:00'),
+(16, 'Hampers', 'hampers', NULL, 1, '2026-05-19 13:15:03', '2026-05-19 13:15:03'),
+(17, 'Hampers Ulang Tahun', 'hampers-ulang-tahun', 16, 1, '2026-05-19 13:15:13', '2026-05-19 13:15:13'),
+(18, 'Hampers Lebaran', 'hampers-lebaran', 16, 1, '2026-05-19 13:15:39', '2026-05-19 13:15:39');
 
 -- --------------------------------------------------------
 
@@ -155,7 +158,9 @@ INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
 (5, '2026_05_16_183752_create_products_table', 1),
 (6, '2026_05_16_183759_create_product_images_table', 1),
 (7, '2026_05_16_183806_create_settings_table', 1),
-(8, '2026_05_17_000001_create_product_variants_table', 2);
+(8, '2026_05_17_000001_create_product_variants_table', 2),
+(9, '2026_05_17_000002_drop_thumbnail_from_categories', 3),
+(10, '2026_05_17_000003_add_name_to_product_variants', 4);
 
 -- --------------------------------------------------------
 
@@ -193,19 +198,18 @@ CREATE TABLE `products` (
 --
 
 INSERT INTO `products` (`id`, `category_id`, `name`, `slug`, `price`, `description`, `thumbnail`, `status`, `created_at`, `updated_at`) VALUES
-(1, 2, 'Bunga Papan Ucapan Selamat', 'bunga-papan-ucapan-selamat', 350000.00, 'Numquam quae odio iure minima tempore sed. Voluptate alias dolor praesentium ipsa corporis quia illum.', 'products/Y4iVvr52stvfnQQEftEjeUG9nJPTPm38YyFuwkV0.png', 1, '2026-05-16 12:22:07', '2026-05-16 12:35:20'),
-(2, 1, 'Bunga Papan Dukacita', 'bunga-papan-dukacita', 300000.00, 'Sapiente sapiente vel rerum et ut velit voluptatem. Debitis debitis quas autem nulla. Repellendus veritatis voluptate molestiae autem odio vel aliquam.', NULL, 1, '2026-05-16 12:22:07', '2026-05-16 12:22:07'),
-(3, 1, 'Standing Flower Premium', 'standing-flower-premium', 750000.00, 'Dolores maiores id alias nam velit temporibus. Assumenda cum sunt voluptatem totam molestias quibusdam. Quas consectetur sunt est quia.', NULL, 1, '2026-05-16 12:22:07', '2026-05-16 12:22:07'),
-(4, 1, 'Bouquet Mawar Merah', 'bouquet-mawar-merah', 250000.00, 'Voluptatem quas recusandae deleniti. Iste voluptatem ea qui eius odio non aliquid. Maiores dolores sed itaque asperiores.', NULL, 1, '2026-05-16 12:22:07', '2026-05-16 12:22:07'),
-(5, 6, 'Bouquet Mawar Putih', 'bouquet-mawar-putih', 250000.00, 'Omnis natus accusantium vel eum quaerat qui natus est. Iure natus temporibus ut et ipsa aut.', NULL, 1, '2026-05-16 12:22:07', '2026-05-16 12:22:07'),
-(6, 9, 'Hand Bouquet Elegant', 'hand-bouquet-elegant', 180000.00, 'Doloribus est eligendi perspiciatis non. Reiciendis maiores ut harum et reprehenderit fugiat. At natus qui placeat aut.', NULL, 1, '2026-05-16 12:22:07', '2026-05-16 12:22:07'),
-(7, 3, 'Bunga Meja Grand Opening', 'bunga-meja-grand-opening', 500000.00, 'Dolorum cumque veniam porro molestias nisi eum aliquam. Cupiditate id voluptas consequatur similique iste consequuntur in.', NULL, 1, '2026-05-16 12:22:07', '2026-05-16 12:22:07'),
-(8, 2, 'Standing Flower Custom', 'standing-flower-custom', 1000000.00, 'In quam dolorem neque voluptas. Alias quia ullam illo aspernatur possimus.', NULL, 1, '2026-05-16 12:22:07', '2026-05-16 12:22:07'),
-(9, 1, 'Bouquet Campuran Premium', 'bouquet-campuran-premium', 350000.00, 'Nisi inventore consequuntur eum eius repellat fugit maxime. Quo impedit sit qui fugit magni corporis.', NULL, 1, '2026-05-16 12:22:07', '2026-05-16 12:22:07'),
-(10, 4, 'Bunga Papan Wedding', 'bunga-papan-wedding', 450000.00, 'Soluta recusandae ex voluptate. Iusto aliquam quidem expedita adipisci vel ut.', NULL, 1, '2026-05-16 12:22:07', '2026-05-16 12:22:07'),
-(11, 10, 'Sympathy Flower Arrangement', 'sympathy-flower-arrangement', 400000.00, 'Occaecati eveniet quia qui numquam id. Adipisci totam reprehenderit consequatur numquam ea ut ea. Eos et quod iste minus molestias.', NULL, 1, '2026-05-16 12:22:07', '2026-05-16 12:22:07'),
-(12, 8, 'Grand Opening Standing Banner', 'grand-opening-standing-banner', 850000.00, 'Architecto sit ducimus illo itaque sed velit. Suscipit non ipsam quo provident id blanditiis consequatur.', NULL, 1, '2026-05-16 12:22:07', '2026-05-16 12:22:07'),
-(13, 1, 'TES', 'tes', 124444.00, 'TES', 'products/cHAq3ZVAlcbua79Jwrbi2vZ0ny2y4DQdpMdJJpOP.png', 1, '2026-05-16 13:30:55', '2026-05-16 13:30:55');
+(1, 2, 'Grand Celebration Board', 'grand-celebration-board', 150000.00, 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 'products/pbU2rKeOGkzxWgnHBd2FbFvHFCfyNfxRnBeRAKKw.jpg', 1, '2026-05-19 12:13:09', '2026-05-19 12:13:09'),
+(2, 3, 'Golden Achievement Flower Board', 'golden-achievement-flower-board', 350000.00, 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 'products/KUMpUlKBUhOuxts2FdHchlnmOSINVRJSeCckRjA7.jpg', 1, '2026-05-19 12:35:30', '2026-05-19 12:35:30'),
+(3, 4, 'Deep Sympathy Flower Board', 'deep-sympathy-flower-board', 250000.00, 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 'products/ham3qRWFXirCchgHGLJH7GBfGliLHpTfI18sw7TL.jpg', 1, '2026-05-19 12:36:35', '2026-05-19 12:36:35'),
+(4, 6, 'Bouquet Mawar Merah', 'bouquet-mawar-merah', 125000.00, 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 'products/WeLtxvNeAFbUn6YrJhWhxvwjVRK6u1emldpPiR4w.jpg', 1, '2026-05-19 13:00:31', '2026-05-19 13:00:31'),
+(5, 9, 'Bouquet Wisuda', 'bouquet-wisuda', 300000.00, 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 'products/g3X6KyElqTIF6e7SyGs6ilIhxd8oofeL8CaBJt4y.jpg', 1, '2026-05-19 13:05:24', '2026-05-19 13:05:24'),
+(6, 11, 'Standing Flowers White Elegant Pernikahan', 'standing-flowers-white-elegant-pernikahan', 230000.00, 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 'products/TQWhe54YPGFGYU3HrDmMgYz1HMK9IVMS7icHrbMe.jpg', 1, '2026-05-19 13:07:49', '2026-05-19 13:07:49'),
+(7, 12, 'Standing Flowers Grand Opening', 'standing-flowers-grand-opening', 230000.00, 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 'products/5X67CghkRIpMjsAuzNak19sc1psnWopcwrgzHgls.jpg', 1, '2026-05-19 13:08:58', '2026-05-19 13:08:58'),
+(8, 14, 'Luxury Rose Box', 'luxury-rose-box', 200000.00, 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 'products/n5uh2rA05B6PvzbUUnQFro0tldvKXpBOSxv1a4on.jpg', 1, '2026-05-19 13:12:40', '2026-05-19 13:12:40'),
+(9, 15, 'Romantic Anniversary Flower Box', 'romantic-anniversary-flower-box', 209998.00, 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 'products/fHkMuaqWszFgiRqlK9N87bdrZ1ta9RsMvc8pQIXM.jpg', 1, '2026-05-19 13:13:18', '2026-05-19 13:13:18'),
+(10, 17, 'Hampers Ulang Tahun', 'hampers-ulang-tahun', 180000.00, 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 'products/qmjU4rDJamLAk1KkWGFjmtiFTmizgqeURcC3w1B7.jpg', 1, '2026-05-19 13:16:07', '2026-05-19 13:16:07'),
+(11, 18, 'Hampers Lebaran Night', 'hampers-lebaran-night', 300000.00, 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 'products/qj1vvvAWS6IzphSYgQp4TYGJ3mIk2w6zRyJ8U7bn.jpg', 1, '2026-05-19 13:17:41', '2026-05-19 13:17:41'),
+(12, 18, 'Hampers Lebaran Kotak', 'hampers-lebaran-kotak', 120000.00, 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 'products/kze974XCqnjAmn6S4X10lEWWr7PrzbT8uVqhe7zU.jpg', 1, '2026-05-19 13:18:44', '2026-05-19 13:18:44');
 
 -- --------------------------------------------------------
 
@@ -220,13 +224,6 @@ CREATE TABLE `product_images` (
   `created_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
---
--- Dumping data untuk tabel `product_images`
---
-
-INSERT INTO `product_images` (`id`, `product_id`, `image_url`, `created_at`) VALUES
-(1, 1, 'product-images/awzxmrDLuvdeeQl1Pkc9QZe5ogWcNKfT9ZEvYmcB.png', NULL);
-
 -- --------------------------------------------------------
 
 --
@@ -236,6 +233,7 @@ INSERT INTO `product_images` (`id`, `product_id`, `image_url`, `created_at`) VAL
 CREATE TABLE `product_variants` (
   `id` bigint(20) UNSIGNED NOT NULL,
   `product_id` bigint(20) UNSIGNED NOT NULL,
+  `name` varchar(255) DEFAULT NULL,
   `image` varchar(255) DEFAULT NULL,
   `description` text DEFAULT NULL,
   `price` decimal(12,2) DEFAULT NULL,
@@ -248,9 +246,13 @@ CREATE TABLE `product_variants` (
 -- Dumping data untuk tabel `product_variants`
 --
 
-INSERT INTO `product_variants` (`id`, `product_id`, `image`, `description`, `price`, `sort_order`, `created_at`, `updated_at`) VALUES
-(1, 13, 'variants/Y2wPp8EbICfwvrGiquRHmP9Iu1s2hY2FtuSG1rrY.png', 'TES', 122222222.00, 0, '2026-05-16 13:32:12', '2026-05-16 13:32:12'),
-(2, 13, 'variants/nGOGsl8lsDstnwEiGUmsacgf9dNlAArhRt80cDzp.png', 'ETAAEF', 3563252.00, 1, '2026-05-16 13:32:59', '2026-05-16 13:32:59');
+INSERT INTO `product_variants` (`id`, `product_id`, `name`, `image`, `description`, `price`, `sort_order`, `created_at`, `updated_at`) VALUES
+(3, 1, 'tes', 'variants/u1ZuQ8AmXPkeWEi4cK38O7iQUYxQt7bNqpXWqAkG.jpg', 'VARIAN Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. ', 130000.00, 0, '2026-05-19 12:14:57', '2026-05-19 12:23:06'),
+(4, 4, 'Bouquet Mawar Merah Variant', 'variants/XdA47nY8SHI6swrjrtdx89XJcr6aGqAHj9kznaDZ.jpg', 'VARIANT Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 135000.00, 0, '2026-05-19 13:00:31', '2026-05-19 13:00:31'),
+(5, 4, 'Bouquet Mawar Merah Variant 2', 'variants/P3plSm1ub4ozJnYJmWFfycpmTnws7K9uf9nR2BsN.jpg', 'VARIANT 2 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 130000.00, 1, '2026-05-19 13:01:49', '2026-05-19 13:01:49'),
+(6, 5, 'Boquest Boneka Wisuda Variant', 'variants/h3mJPOUN31nmt9leX2KKaMjREnuNSUACdZIwm2iB.jpg', 'VARIANT BONEKA Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 350000.00, 0, '2026-05-19 13:05:24', '2026-05-19 13:05:24'),
+(7, 8, 'Premium Red Mawar', 'variants/uRqMrDnfjQSMmQHOXWTHb0mDoxaj0YvedPrgU1yt.jpg', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 230000.00, 0, '2026-05-19 13:12:40', '2026-05-19 13:12:40'),
+(8, 11, 'Hampers Lebaran Toples', 'variants/Wkq0C1bnzd9X0Jr4B5YHEnSmlVoDjkQYOtBP5lnm.jpg', 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.', 180000.00, 0, '2026-05-19 13:17:41', '2026-05-19 13:17:41');
 
 -- --------------------------------------------------------
 
@@ -287,8 +289,9 @@ CREATE TABLE `settings` (
 
 INSERT INTO `settings` (`id`, `key`, `value`, `created_at`, `updated_at`) VALUES
 (1, 'whatsapp_number', '628979912254', '2026-05-16 12:22:07', '2026-05-16 14:38:48'),
-(2, 'store_name', 'Florist Elegan', '2026-05-16 12:22:07', '2026-05-16 12:22:07'),
-(3, 'store_address', 'Jl. Bunga Indah No. 123, Jakarta Pusat', '2026-05-16 12:22:07', '2026-05-16 12:22:07');
+(2, 'store_name', 'Toko Bunga', '2026-05-16 12:22:07', '2026-05-19 12:41:53'),
+(3, 'store_address', 'Jl. Bunga Indah No. 123, Jakarta Pusat', '2026-05-16 12:22:07', '2026-05-16 12:22:07'),
+(4, 'store_description', 'Menyediakan rangkaian bunga papan terbaik untuk berbagai acara Anda.', '2026-05-19 13:27:55', '2026-05-19 13:28:11');
 
 -- --------------------------------------------------------
 
@@ -424,7 +427,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT untuk tabel `categories`
 --
 ALTER TABLE `categories`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT untuk tabel `failed_jobs`
@@ -442,13 +445,13 @@ ALTER TABLE `jobs`
 -- AUTO_INCREMENT untuk tabel `migrations`
 --
 ALTER TABLE `migrations`
-  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT untuk tabel `products`
 --
 ALTER TABLE `products`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT untuk tabel `product_images`
@@ -460,13 +463,13 @@ ALTER TABLE `product_images`
 -- AUTO_INCREMENT untuk tabel `product_variants`
 --
 ALTER TABLE `product_variants`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT untuk tabel `settings`
 --
 ALTER TABLE `settings`
-  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` bigint(20) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT untuk tabel `users`
