@@ -14,7 +14,7 @@
                     <svg class="w-6 h-6 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
                 </div>
                 <div>
-                    <p class="text-sm text-gray-500">Total Categories</p>
+                    <p class="text-sm text-gray-500">Total Kategori</p>
                     <p class="text-2xl font-bold text-gray-900">{{ $totalCategories }}</p>
                 </div>
             </div>
@@ -26,7 +26,7 @@
                     <svg class="w-6 h-6 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
                 </div>
                 <div>
-                    <p class="text-sm text-gray-500">Total Products</p>
+                    <p class="text-sm text-gray-500">Total Produk</p>
                     <p class="text-2xl font-bold text-gray-900">{{ $totalProducts }}</p>
                 </div>
             </div>
@@ -47,45 +47,71 @@
 
     <div class="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-lg font-semibold text-gray-900">Quick Actions</h2>
+            <h2 class="text-lg font-semibold text-gray-900">Aksi Cepat</h2>
             <div class="mt-4 space-y-3">
                 <a href="{{ route('admin.categories') }}" wire:navigate class="flex items-center justify-between p-4 bg-rose-50 rounded-lg hover:bg-rose-100 transition">
-                    <span class="text-sm font-medium text-rose-700">Manage Categories</span>
+                    <span class="text-sm font-medium text-rose-700">Kelola Kategori</span>
                     <svg class="w-5 h-5 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>
                 <a href="{{ route('admin.products') }}" wire:navigate class="flex items-center justify-between p-4 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition">
-                    <span class="text-sm font-medium text-emerald-700">Manage Products</span>
+                    <span class="text-sm font-medium text-emerald-700">Kelola Produk</span>
                     <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>
                 <a href="{{ route('admin.settings') }}" wire:navigate class="flex items-center justify-between p-4 bg-blue-50 rounded-lg hover:bg-blue-100 transition">
-                    <span class="text-sm font-medium text-blue-700">Store Settings</span>
+                    <span class="text-sm font-medium text-blue-700">Pengaturan Toko</span>
                     <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
                 </a>
             </div>
         </div>
 
-        <div class="bg-white rounded-xl border border-gray-200 p-6">
-            <h2 class="text-lg font-semibold text-gray-900">Latest Products</h2>
+        <div class="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div class="px-6 pt-6 pb-4 flex items-center justify-between">
+                <h2 class="text-lg font-semibold text-gray-900">Produk Terbaru</h2>
+                @if($latestProducts->isNotEmpty())
+                    <a href="{{ route('admin.products') }}" wire:navigate
+                       class="text-sm text-rose-500 hover:text-rose-700 font-medium flex items-center gap-1">
+                        Lihat semua
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                    </a>
+                @endif
+            </div>
             @if($latestProducts->isEmpty())
-                <p class="mt-4 text-sm text-gray-400">No products yet.</p>
+                <p class="px-6 pb-6 text-sm text-gray-400">Belum ada produk.</p>
             @else
-                <ul class="mt-4 divide-y divide-gray-100">
-                    @foreach($latestProducts as $product)
-                        <li class="py-3 flex items-center justify-between">
-                            <div>
-                                <p class="text-sm font-medium text-gray-900">{{ $product->name }}</p>
-                                <p class="text-xs text-gray-500">{{ $product->category?->name }}</p>
-                            </div>
-                            <span class="text-sm font-semibold text-gray-900">
-                                @if($product->starting_price)
-                                    Rp {{ number_format((float) $product->starting_price, 0, ',', '.') }}
-                                @else
-                                    —
-                                @endif
-                            </span>
-                        </li>
-                    @endforeach
-                </ul>
+                <div class="overflow-x-auto">
+                    <table class="w-full min-w-[360px]">
+                        <thead>
+                            <tr class="border-y border-gray-100 bg-gray-50/50">
+                                <th class="text-left px-6 py-2.5 text-xs font-medium text-gray-400 uppercase tracking-wider whitespace-nowrap">Produk</th>
+                                <th class="text-left px-6 py-2.5 text-xs font-medium text-gray-400 uppercase tracking-wider whitespace-nowrap">Kategori</th>
+                                <th class="text-right px-6 py-2.5 text-xs font-medium text-gray-400 uppercase tracking-wider whitespace-nowrap">Harga</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-50">
+                            @foreach($latestProducts as $product)
+                                <tr class="hover:bg-gray-50/50 transition">
+                                    <td class="px-6 py-3">
+                                        <p class="text-sm font-medium text-gray-900 truncate max-w-40">{{ $product->name }}</p>
+                                    </td>
+                                    <td class="px-6 py-3 whitespace-nowrap">
+                                        <p class="text-xs text-gray-500">{{ $product->category?->name ?? '—' }}</p>
+                                    </td>
+                                    <td class="px-6 py-3 text-right whitespace-nowrap">
+                                        <span class="text-sm font-semibold text-gray-900">
+                                            @if($product->starting_price)
+                                                Rp {{ number_format((float) $product->starting_price, 0, ',', '.') }}
+                                            @else
+                                                —
+                                            @endif
+                                        </span>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
             @endif
         </div>
     </div>

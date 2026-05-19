@@ -21,8 +21,8 @@ class ProductCatalog extends Component
     #[Url(as: 'category', except: '')]
     public string $categorySlug = '';
 
-    #[Url(as: 'sort', except: 'latest')]
-    public string $sort = 'latest';
+    #[Url(as: 'sort', except: 'price_asc')]
+    public string $sort = 'price_asc';
 
     #[Url(as: 'min', except: '')]
     public string $minPrice = '';
