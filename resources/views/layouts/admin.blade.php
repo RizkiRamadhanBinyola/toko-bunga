@@ -132,5 +132,21 @@
     </div>
 </div>
 
+    {{-- ── Global SweetAlert toast handler ─────────────────────────── --}}
+    <div
+        x-data
+        x-on:show-toast.window="
+            Swal.fire({
+                icon: $event.detail.type ?? 'success',
+                title: $event.detail.message,
+                toast: true,
+                position: 'bottom-end',
+                showConfirmButton: false,
+                timer: 3000,
+                timerProgressBar: true,
+            });
+        "
+    ></div>
+
 </body>
 </html>

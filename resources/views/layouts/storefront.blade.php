@@ -43,6 +43,14 @@
                         <li>WhatsApp: {{ \App\Models\Setting::get('whatsapp_number', '0812-3456-7890') }}</li>
                         <li>{{ \App\Models\Setting::get('store_address', 'Jakarta, Indonesia') }}</li>
                     </ul>
+                    @if($mapLocation = \App\Models\Setting::get('footer_map_location'))
+                        <div class="mt-6">
+                            <h4 class="text-sm font-semibold text-gray-900 tracking-wider uppercase">Lokasi</h4>
+                            <div class="mt-3 aspect-[16/9] overflow-hidden rounded-2xl border border-gray-200">
+                                <iframe src="https://maps.google.com/maps?q={{ urlencode($mapLocation) }}&output=embed" class="w-full h-full" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                        </div>
+                    @endif
                 </div>
             </div>
             <div class="mt-8 pt-8 border-t border-gray-200">

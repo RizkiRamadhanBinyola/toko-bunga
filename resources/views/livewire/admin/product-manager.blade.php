@@ -1,37 +1,4 @@
 <div>
-    {{-- ── Toast Notification ─────────────────────────────────────── --}}
-    <div
-        x-data="{ show: false, message: '', type: 'success' }"
-        x-on:show-toast.window="
-            message = $event.detail.message;
-            type    = $event.detail.type ?? 'success';
-            show    = true;
-            setTimeout(() => show = false, 3500);
-        "
-        x-show="show"
-        x-transition:enter="transition ease-out duration-300"
-        x-transition:enter-start="opacity-0 translate-y-4"
-        x-transition:enter-end="opacity-100 translate-y-0"
-        x-transition:leave="transition ease-in duration-200"
-        x-transition:leave-start="opacity-100 translate-y-0"
-        x-transition:leave-end="opacity-0 translate-y-4"
-        class="fixed bottom-6 right-6 z-[100] flex items-center gap-3 px-5 py-3.5 rounded-xl shadow-xl text-sm font-medium text-white min-w-[220px]"
-        :class="type === 'success' ? 'bg-emerald-500' : 'bg-red-500'"
-        style="display:none"
-    >
-        <template x-if="type === 'success'">
-            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-            </svg>
-        </template>
-        <template x-if="type === 'error'">
-            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-        </template>
-        <span x-text="message"></span>
-    </div>
-
     {{-- ── Header ──────────────────────────────────────────────────── --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <h1 class="text-2xl font-semibold text-gray-900">Produk</h1>
@@ -122,8 +89,18 @@
                                 <td class="px-6 py-4 text-right whitespace-nowrap space-x-2">
                                     <button wire:click="openEdit({{ $product->id }})" class="text-sm text-blue-600 hover:text-blue-800 font-medium">Edit</button>
                                     <button
-                                        wire:click="delete({{ $product->id }})"
-                                        wire:confirm="Hapus produk '{{ $product->name }}'?"
+                                        x-on:click.prevent="
+                                            Swal.fire({
+                                                title: 'Hapus produk?',
+                                                text: '{{ $product->name }} akan dihapus permanen.',
+                                                icon: 'warning',
+                                                showCancelButton: true,
+                                                confirmButtonColor: '#e53e3e',
+                                                cancelButtonColor: '#6b7280',
+                                                confirmButtonText: 'Ya, hapus!',
+                                                cancelButtonText: 'Batal',
+                                            }).then((r) => r.isConfirmed && $wire.delete({{ $product->id }}));
+                                        "
                                         class="text-sm text-red-500 hover:text-red-700 font-medium"
                                     >Hapus</button>
                                 </td>

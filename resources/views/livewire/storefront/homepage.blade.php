@@ -4,12 +4,12 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
             <div class="max-w-2xl">
                 <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
-                    Bunga Papan<br>
-                    <span class="text-rose-500">Terbaik untuk</span><br>
-                    Momen Spesial
+                    {{ \App\Models\Setting::get('home_banner_heading', 'Bunga Papan') }}<br>
+                    <span class="text-rose-500">{{ \App\Models\Setting::get('home_banner_highlight', 'Terbaik untuk') }}</span><br>
+                    {{ \App\Models\Setting::get('home_banner_subheading', 'Momen Spesial') }}
                 </h1>
                 <p class="mt-6 text-lg text-gray-600 leading-relaxed">
-                    Kami menyediakan berbagai rangkaian bunga papan elegan untuk ucapan selamat, dukacita, grand opening, dan berbagai acara lainnya.
+                    {{ \App\Models\Setting::get('home_banner_description', 'Kami menyediakan berbagai rangkaian bunga papan elegan untuk ucapan selamat, dukacita, grand opening, dan berbagai acara lainnya.') }}
                 </p>
                 <div class="mt-8 flex flex-col sm:flex-row gap-4">
                     <a href="{{ route('products') }}" wire:navigate class="inline-flex items-center justify-center px-6 py-3 bg-rose-500 text-white font-medium rounded-xl hover:bg-rose-600 transition shadow-lg shadow-rose-200">

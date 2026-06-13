@@ -37,10 +37,6 @@ class ProductManager extends Component
     // Each item: ['id' => null|int, 'image' => null, 'existingImage' => null, 'description' => '', 'price' => '', 'sort_order' => 0]
     public array $variants = [];
 
-    // ── Toast ─────────────────────────────────────────────────────
-    public ?string $toastMessage = null;
-    public string $toastType = 'success'; // success | error
-
     public function render()
     {
         $query = Product::with(['category', 'variants']);
@@ -255,8 +251,6 @@ class ProductManager extends Component
 
     public function showToast(string $message, string $type = 'success'): void
     {
-        $this->toastMessage = $message;
-        $this->toastType = $type;
         $this->dispatch('show-toast', message: $message, type: $type);
     }
 
