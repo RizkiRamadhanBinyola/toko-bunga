@@ -13,6 +13,7 @@ Catalog website with admin dashboard, WhatsApp order redirects. No cart, no paym
 - `composer test` — runs `config:clear && artisan test` (SQLite in-memory)
 - `php artisan migrate:fresh --seed` — reset + reseed
 - **Windows:** `php artisan pail` unavailable (requires `pcntl`); use `storage/logs/laravel.log`
+- `./vendor/bin/pint` — Laravel code style fixer (dev dep)
 
 ## Architecture
 - **Admin components** (6): `Dashboard`, `CategoryManager`, `ProductManager`, `Settings`, `Login`, `Logout` — all in `App\Livewire\Admin\`
@@ -28,18 +29,18 @@ Catalog website with admin dashboard, WhatsApp order redirects. No cart, no paym
 - `product_images` has **no timestamps** (`$timestamps = false` on model)
 - `product_variants` — name/image/description/price all nullable; `sort_order` defaults to 0
 - `settings` — key-value store with static `get(key, default)` / `set(key, value)` helpers (upsert)
-- `Product` boot trait auto-generates slug from name on `creating`; same for `Category`
+- `Product` and `Category` both use `booted()` to auto-generate slug from name on `creating`
 
 ## Non-obvious patterns
 - **Computed accessors on `Product`:** `starting_price` (lowest variant price, else base price), `display_image` (first variant image, else thumbnail)
 - **Computed accessors on `ProductVariant`:** `effective_*` fields fall back to parent product's corresponding field
 - **File uploads:** `ProductManager` uses `Storage::disk('public')` with `WithFileUploads` trait
 - **WhatsApp order flow:** `ProductDetail` builds a structured message → `rawurlencode()` → `wa.me` redirect
-- **Toast notifications:** dispatched via `$this->dispatch('show-toast', ...)`
+- **SweetAlert2:** imported globally in `resources/js/app.js` (aliased as `window.Swal`). Used for delete confirmation dialogs in admin blade views AND toast notifications via global Alpine `x-on:show-toast.window` handler in `layouts/admin.blade.php`. Toast messages are dispatched via `$this->dispatch('show-toast', ...)`
 - **URL-persisted filters:** `ProductCatalog` uses `#[Url]` attribute on all filter properties
 - **Pagination:** 10 per page (admin), 12 per page (storefront)
 - **Alpine.js:** used for sidebar, navbar dropdown/mobile menu, variant carousel (injected by Livewire 4)
 
 ## Seeders
 - Admin user: `admin@bunga.test` / `admin123`
-- 12 categories (3 parents × 3 children each), 12 products, 4 settings (`whatsapp_number`, `store_name`, `store_address`, `store_description`)
+- 12 categories (3 parents × 3 children each), 12 products, 4 settings (`whatsapp_number`, `store_name`, `store_address`, `store_description`). Settings component manages 9 keys: the 4 above plus `home_banner_*` (3) and `footer_map_location`
