@@ -1,3 +1,10 @@
+@section('meta_description', $product->description
+    ? strip_tags(Str::limit($product->description, 160))
+    : 'Detail ' . e($product->name) . ' — Pesan sekarang via WhatsApp.')
+@section('og_title', $product->name)
+@section('og_description', $product->description ? strip_tags(Str::limit($product->description, 200)) : '')
+@section('og_image', $product->display_image ? \Illuminate\Support\Facades\Storage::url($product->display_image) : '')
+@section('og_type', 'product')
 <div>
     @php use Illuminate\Support\Str; @endphp
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -22,6 +29,7 @@
                 x-data="{
                     current: 0,
                     images: {{ json_encode($images) }},
+                    storageBase: '{{ rtrim(\Illuminate\Support\Facades\Storage::url(''), '/') }}',
                     autoplayInterval: null,
                     autoplayDelay: 3500,
                     get currentImage() {
@@ -75,7 +83,7 @@
                     <template x-if="currentImage">
                         <img
                             :key="current"
-                            :src="'/storage/' + currentImage"
+                            :src="storageBase + '/' + currentImage"
                             class="w-full h-full object-cover transition-opacity duration-500"
                             x-transition:enter="transition ease-out duration-500"
                             x-transition:enter-start="opacity-0 scale-105"
@@ -137,7 +145,7 @@
                                 :class="current === i ? 'border-rose-500' : 'border-transparent hover:border-rose-200'"
                             >
                                 <template x-if="img.image">
-                                    <img :src="'/storage/' + img.image" class="w-full h-full object-cover">
+                                    <img :src="storageBase + '/' + img.image" class="w-full h-full object-cover">
                                 </template>
                                 <template x-if="!img.image">
                                     <div class="w-full h-full bg-gray-100 flex items-center justify-center">
@@ -285,6 +293,37 @@
                             <p class="text-xs text-gray-400 mb-1.5">Informasi tambahan untuk penjual (misal: warna, ukuran, permintaan khusus)</p>
                             <textarea wire:model="notes" rows="2" placeholder="Contoh: bungkus warna merah, tambah pita" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none"></textarea>
                         </div>
+
+                        {{-- Payment Methods --}}
+                        @php
+                            $paymentMethods = json_decode(\App\Models\Setting::get('payment_methods', '[]'), true) ?: [];
+                        @endphp
+                        @if(!empty($paymentMethods))
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-3">Metode Pembayaran <span class="text-gray-400 font-normal">(opsional)</span></label>
+                                <div class="flex flex-wrap gap-3">
+                                    @foreach($paymentMethods as $pm)
+                                        <button
+                                            type="button"
+                                            wire:click="selectPaymentMethod('{{ $pm['name'] }}')"
+                                            class="flex items-center justify-center p-3 rounded-xl border-2 transition-all
+                                                {{ $selectedPaymentMethod === $pm['name']
+                                                    ? 'border-rose-500 bg-rose-50 shadow-sm shadow-rose-100'
+                                                    : 'border-gray-200 bg-white hover:border-rose-300' }}"
+                                        >
+                                            @if($pm['logo'])
+                                                <img src="{{ Storage::url($pm['logo']) }}" alt="{{ $pm['name'] }}" class="h-10 w-auto object-contain">
+                                            @endif
+                                            @if($selectedPaymentMethod === $pm['name'])
+                                                <svg class="w-4 h-4 text-rose-500 -ml-1" fill="currentColor" viewBox="0 0 20 20">
+                                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                                </svg>
+                                            @endif
+                                        </button>
+                                    @endforeach
+                                </div>
+                            </div>
+                        @endif
 
                         <button
                             type="submit"

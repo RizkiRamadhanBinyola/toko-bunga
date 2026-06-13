@@ -1,6 +1,19 @@
+@section('canonical_url', route('home'))
+@php
+    $storeDesc = \App\Models\Setting::get('store_description', 'Toko bunga papan untuk berbagai acara Anda.');
+@endphp
+@section('meta_description', $storeDesc)
 <div>
+    @php
+        use App\Models\Setting;
+    @endphp
+
     {{-- Hero --}}
-    <section class="relative bg-gradient-to-br from-rose-50 via-white to-amber-50 overflow-hidden">
+    @php
+        $heroBg = Setting::get('home_hero_background', '');
+        $heroStyle = $heroBg ? 'background-image: url(' . \Storage::url($heroBg) . '); background-size: cover; background-position: center;' : 'background: linear-gradient(135deg, #fff1f2, #ffffff, #fffbeb);';
+    @endphp
+    <section class="relative overflow-hidden" style="{{ $heroStyle }}">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
             <div class="max-w-2xl">
                 <h1 class="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 leading-tight">
@@ -25,11 +38,12 @@
     </section>
 
     {{-- Categories --}}
+    @if(Setting::get('show_categories_section', '1') === '1')
     <section id="categories" class="py-16 lg:py-24">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center">
-                <h2 class="text-3xl font-bold text-gray-900">Kategori Produk</h2>
-                <p class="mt-2 text-gray-500">Pilih kategori bunga papan yang Anda butuhkan</p>
+                <h2 class="text-3xl font-bold text-gray-900">{{ Setting::get('categories_section_title', 'Kategori Produk') }}</h2>
+                <p class="mt-2 text-gray-500">{{ Setting::get('categories_section_description', 'Pilih kategori bunga papan yang Anda butuhkan') }}</p>
             </div>
 
             <div class="mt-10 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -47,14 +61,16 @@
             </div>
         </div>
     </section>
+    @endif
 
     {{-- Latest Products --}}
+    @if(Setting::get('show_latest_products_section', '1') === '1')
     <section class="py-16 lg:py-24 bg-gray-50/50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-end justify-between">
                 <div>
-                    <h2 class="text-3xl font-bold text-gray-900">Produk Terbaru</h2>
-                    <p class="mt-2 text-gray-500">Rangkaian bunga papan pilihan untuk Anda</p>
+                    <h2 class="text-3xl font-bold text-gray-900">{{ Setting::get('latest_products_section_title', 'Produk Terbaru') }}</h2>
+                    <p class="mt-2 text-gray-500">{{ Setting::get('latest_products_section_description', 'Rangkaian bunga papan pilihan untuk Anda') }}</p>
                 </div>
                 <a href="{{ route('products') }}" wire:navigate class="hidden sm:inline-flex items-center gap-1 text-sm font-medium text-rose-500 hover:text-rose-600">
                     Lihat Semua
@@ -116,13 +132,15 @@
             </div>
         </div>
     </section>
+    @endif
 
     {{-- CTA --}}
+    @if(Setting::get('show_cta_section', '1') === '1')
     <section class="py-16 lg:py-24">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="bg-gradient-to-r from-rose-500 to-rose-600 rounded-2xl p-8 lg:p-12 text-center text-white">
-                <h2 class="text-2xl lg:text-3xl font-bold">Pesan Sekarang</h2>
-                <p class="mt-3 text-rose-100 max-w-lg mx-auto">Hubungi kami via WhatsApp untuk konsultasi dan pemesanan bunga papan</p>
+                <h2 class="text-2xl lg:text-3xl font-bold">{{ Setting::get('cta_section_title', 'Pesan Sekarang') }}</h2>
+                <p class="mt-3 text-rose-100 max-w-lg mx-auto">{{ Setting::get('cta_section_description', 'Hubungi kami via WhatsApp untuk konsultasi dan pemesanan bunga papan') }}</p>
                 <a href="https://wa.me/{{ \App\Models\Setting::get('whatsapp_number', '6281234567890') }}" target="_blank" class="mt-6 inline-flex items-center gap-2 px-6 py-3 bg-white text-rose-600 font-medium rounded-xl hover:bg-rose-50 transition shadow-lg">
                     <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
                     Hubungi WhatsApp
@@ -130,4 +148,5 @@
             </div>
         </div>
     </section>
+    @endif
 </div>

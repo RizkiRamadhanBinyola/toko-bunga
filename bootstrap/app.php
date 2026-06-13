@@ -14,6 +14,9 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->redirectGuestsTo(fn () => route('admin.login'));
         $middleware->redirectUsersTo(fn () => route('admin.dashboard'));
 
+        // Trust proxies — penting untuk shared hosting yg pakai reverse proxy/CDN
+        $middleware->trustProxies(at: '*');
+
         // Cegah browser cache halaman Livewire agar back button tidak trigger GET ke /livewire/update
         $middleware->web(append: [
             \Livewire\Features\SupportDisablingBackButtonCache\DisableBackButtonCacheMiddleware::class,

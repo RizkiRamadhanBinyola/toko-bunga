@@ -16,7 +16,7 @@ Catalog website with admin dashboard, WhatsApp order redirects. No cart, no paym
 - `./vendor/bin/pint` — Laravel code style fixer (dev dep)
 
 ## Architecture
-- **Admin components** (6): `Dashboard`, `CategoryManager`, `ProductManager`, `Settings`, `Login`, `Logout` — all in `App\Livewire\Admin\`
+- **Admin components** (9): `Dashboard`, `CategoryManager`, `ProductManager`, `Settings`, `SettingsSocial`, `SettingsPayment`, `SettingsSeo`, `Login`, `Logout` — all in `App\Livewire\Admin\`
 - **Storefront components** (5): `Homepage`, `Navbar`, `CategoryPage`, `ProductDetail`, `ProductCatalog` — all in `App\Livewire\Storefront\`
 - **Models (6):** `Category`, `Product`, `ProductImage`, `ProductVariant`, `Setting`, `User`
 - **Layouts (3):** `admin.blade.php`, `storefront.blade.php`, `guest.blade.php`
@@ -44,3 +44,72 @@ Catalog website with admin dashboard, WhatsApp order redirects. No cart, no paym
 ## Seeders
 - Admin user: `admin@bunga.test` / `admin123`
 - 12 categories (3 parents × 3 children each), 12 products, 4 settings (`whatsapp_number`, `store_name`, `store_address`, `store_description`). Settings component manages 9 keys: the 4 above plus `home_banner_*` (3) and `footer_map_location`
+
+## Deployment ke InfinityFree
+
+### Prasyarat
+- PHP 8.2+ (cek Panel InfinityFree → PHP version)
+- MySQL database (buat via InfinityFree control panel)
+- FTP client (FileZilla atau sejenisnya)
+
+### Langkah-langkah
+
+#### 1. Persiapan lokal
+```bash
+# Install production dependencies (tanpa dev)
+composer install --no-dev --optimize-autoloader
+
+# Build Vite assets
+npm install && npm run build
+
+# Cache config/routes/views (opsional — jalankan dengan .env production)
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+```
+
+#### 2. Upload via FTP
+Upload seluruh folder berikut (kecuali yg tidak perlu):
+| Upload | Skip |
+|--------|------|
+| `public/` | `.git/` |
+| `app/` | `node_modules/` |
+| `bootstrap/` | `.env` (buat baru) |
+| `config/` | `storage/framework/cache/data/` |
+| `database/` | |
+| `resources/` | |
+| `routes/` | |
+| `storage/` (isi folder) | |
+| `vendor/` | |
+| `public/build/` (hasil `npm run build`) | |
+| `.htaccess` | |
+| `composer.json`, `composer.lock` | |
+
+#### 3. Setup di InfinityFree
+1. Buat file `.env` di root dengan isi dari `.env.example`, sesuaikan:
+   - `APP_URL` → domain InfinityFree (https://namadomain.epizy.com)
+   - `DB_*` → kredensial MySQL dari panel InfinityFree
+   - `APP_DEBUG=false`
+   - `APP_ENV=production`
+   - `SESSION_DOMAIN` → domain kamu
+   - `SESSION_SECURE_COOKIE=true`
+   - `QUEUE_CONNECTION=sync` (penting — InfinityFree tdk support queue worker)
+
+2. Akses `https://namadomain.epizy.com/setup/storage-link` **sekali** untuk membuat symlink storage (hapus route ini setelahnya)
+
+3. Import database:
+   - Export dari phpMyAdmin lokal, atau jalankan migration via URL (butuh route khusus) — atau upload database.sql manual
+
+#### 4. Setelah deploy
+- Login admin di `/admin/login` (user: `admin@bunga.test` / `admin123`)
+- **Segera ganti password admin!**
+- Hapus route `/setup/storage-link` dari `routes/web.php`
+- Set favicon, SEO meta, dan pengaturan toko via admin panel
+
+### Catatan penting
+- **Tidak ada SSH** → semua persiapan harus dilakukan lokal, lalu diupload via FTP
+- **Queue worker tidak bisa jalan** → `QUEUE_CONNECTION=sync` (eksekusi langsung)
+- **Session & Cache** pakai database → pastikan tabel `sessions`, `cache`, `jobs` sudah termigrasi
+- **Storage link** harus dibuat manual via route `/setup/storage-link`
+- **HTTPS** → InfinityFree pakai Cloudflare, pastikan `SESSION_SECURE_COOKIE=true`
+- **Error pages** custom sudah tersedia (403, 404, 419, 500, 503)

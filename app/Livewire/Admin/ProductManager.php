@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Admin;
 
+use App\Models\AdminLog;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\ProductVariant;
@@ -10,6 +11,7 @@ use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use Throwable;
 
 #[Layout('layouts.admin')]
 class ProductManager extends Component
@@ -121,49 +123,68 @@ class ProductManager extends Component
 
     public function save(): void
     {
+        $this->slug = $this->slug ?: Str::slug($this->name);
+
+        $slugRule = 'required|unique:products,slug';
+        if ($this->editId) {
+            $slugRule .= ',' . $this->editId;
+        }
+
         $this->validate([
-            'name'       => 'required|min:2|max:255',
-            'categoryId' => 'required|exists:categories,id',
-            'price'      => 'required|numeric|min:0',
-            'variants.*.price' => 'nullable|numeric|min:0',
+            'name'                => 'required|min:2|max:255',
+            'slug'                => $slugRule,
+            'categoryId'          => 'required|exists:categories,id',
+            'price'               => 'required|numeric|min:0',
+            'thumbnail'           => 'nullable|image|mimes:jpeg,png,webp|max:2048',
+            'variants.*.image'    => 'nullable|image|mimes:jpeg,png,webp|max:2048',
+            'variants.*.price'    => 'nullable|numeric|min:0',
         ], [
-            'name.required'       => 'Nama produk wajib diisi.',
-            'categoryId.required' => 'Kategori wajib dipilih.',
-            'price.required'      => 'Harga dasar wajib diisi.',
-            'price.numeric'       => 'Harga harus berupa angka.',
+            'name.required'            => 'Nama produk wajib diisi.',
+            'categoryId.required'      => 'Kategori wajib dipilih.',
+            'price.required'           => 'Harga dasar wajib diisi.',
+            'price.numeric'            => 'Harga harus berupa angka.',
+            'thumbnail.image'          => 'Thumbnail harus berupa gambar.',
+            'thumbnail.mimes'          => 'Thumbnail harus bertipe: jpeg, png, webp.',
+            'thumbnail.max'            => 'Thumbnail maksimal 2MB.',
+            'variants.*.image.image'   => 'Gambar varian harus berupa gambar.',
+            'variants.*.image.mimes'   => 'Gambar varian harus bertipe: jpeg, png, webp.',
+            'variants.*.image.max'     => 'Gambar varian maksimal 2MB.',
             'variants.*.price.numeric' => 'Harga varian harus berupa angka.',
         ]);
 
         // ── Product data ──────────────────────────────────────────
         $data = [
             'name'        => $this->name,
-            'slug'        => $this->slug ?: Str::slug($this->name),
+            'slug'        => $this->slug,
             'category_id' => $this->categoryId,
             'price'       => $this->price,
             'description' => $this->description,
             'status'      => $this->status,
         ];
 
-        if ($this->thumbnail) {
-            // Delete old thumbnail
-            if ($this->existingThumbnail) {
-                Storage::disk('public')->delete($this->existingThumbnail);
+        try {
+            if ($this->thumbnail) {
+                if ($this->existingThumbnail) {
+                    Storage::disk('public')->delete($this->existingThumbnail);
+                }
+                $data['thumbnail'] = $this->thumbnail->store('products', 'public');
+            } elseif ($this->existingThumbnail === null && $this->editId) {
+                $product = Product::find($this->editId);
+                if ($product?->thumbnail) {
+                    Storage::disk('public')->delete($product->thumbnail);
+                }
+                $data['thumbnail'] = null;
             }
-            $data['thumbnail'] = $this->thumbnail->store('products', 'public');
-        } elseif ($this->existingThumbnail === null && $this->editId) {
-            // Thumbnail was cleared
-            $product = Product::find($this->editId);
-            if ($product?->thumbnail) {
-                Storage::disk('public')->delete($product->thumbnail);
-            }
-            $data['thumbnail'] = null;
-        }
 
-        if ($this->editId) {
-            $product = Product::findOrFail($this->editId);
-            $product->update($data);
-        } else {
-            $product = Product::create($data);
+            if ($this->editId) {
+                $product = Product::findOrFail($this->editId);
+                $product->update($data);
+            } else {
+                $product = Product::create($data);
+            }
+        } catch (Throwable $e) {
+            $this->showToast('Terjadi kesalahan saat menyimpan produk.', 'error');
+            return;
         }
 
         // ── Sync variants ─────────────────────────────────────────
@@ -177,9 +198,7 @@ class ProductManager extends Component
                 'sort_order'  => $index,
             ];
 
-            // Handle image upload for this variant
             if (! empty($v['image'])) {
-                // Delete old image if replacing
                 if (! empty($v['existingImage'])) {
                     Storage::disk('public')->delete($v['existingImage']);
                 }
@@ -191,20 +210,17 @@ class ProductManager extends Component
             }
 
             if (! empty($v['id'])) {
-                // Update existing
                 $variant = ProductVariant::find($v['id']);
                 if ($variant) {
                     $variant->update($variantData);
                     $keptIds[] = $variant->id;
                 }
             } else {
-                // Create new
                 $variant = $product->variants()->create($variantData);
                 $keptIds[] = $variant->id;
             }
         }
 
-        // Delete variants that were removed
         $product->variants()
             ->whereNotIn('id', $keptIds)
             ->each(function (ProductVariant $v) {
@@ -217,6 +233,10 @@ class ProductManager extends Component
         $this->showModal = false;
         $isEdit = (bool) $this->editId;
         $this->resetForm();
+        AdminLog::log(
+            $isEdit ? 'update_product' : 'create_product',
+            "Produk: {$this->name}"
+        );
         $this->showToast($isEdit ? 'Produk berhasil diperbarui.' : 'Produk berhasil ditambahkan.');
     }
 
@@ -225,18 +245,25 @@ class ProductManager extends Component
     public function delete(int $id): void
     {
         $product = Product::with('variants')->findOrFail($id);
+        $name = $product->name;
 
-        // Clean up files
-        if ($product->thumbnail) {
-            Storage::disk('public')->delete($product->thumbnail);
-        }
-        foreach ($product->variants as $v) {
-            if ($v->image) {
-                Storage::disk('public')->delete($v->image);
+        try {
+            if ($product->thumbnail) {
+                Storage::disk('public')->delete($product->thumbnail);
             }
+            foreach ($product->variants as $v) {
+                if ($v->image) {
+                    Storage::disk('public')->delete($v->image);
+                }
+            }
+
+            $product->delete();
+        } catch (Throwable $e) {
+            $this->showToast('Gagal menghapus produk.', 'error');
+            return;
         }
 
-        $product->delete();
+        AdminLog::log('delete_product', "Produk: {$name}");
         $this->showToast('Produk berhasil dihapus.', 'success');
     }
 

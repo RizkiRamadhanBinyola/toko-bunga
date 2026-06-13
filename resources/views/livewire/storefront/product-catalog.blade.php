@@ -1,3 +1,7 @@
+@section('canonical_url', route('products'))
+@section('meta_description', $activeCategory
+    ? 'Temukan berbagai ' . e($activeCategory->name) . ' pilihan untuk berbagai acara Anda. Pesan sekarang!'
+    : 'Temukan berbagai rangkaian bunga papan pilihan untuk berbagai acara Anda. Pesan sekarang!')
 <div>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
@@ -271,6 +275,7 @@
                                         <div x-data="{
                                             current: 0,
                                             images: {{ json_encode($images) }},
+                                            storageBase: '{{ rtrim(\Illuminate\Support\Facades\Storage::url(''), '/') }}',
                                             timer: null,
                                             start() {
                                                 if (this.images.length <= 1) return;
@@ -294,7 +299,7 @@
                                                         x-transition:leave="transition ease-in duration-300"
                                                         x-transition:leave-start="opacity-100"
                                                         x-transition:leave-end="opacity-0" class="absolute inset-0">
-                                                        <img :src="'/storage/' + img"
+                                                        <img :src="storageBase + '/' + img"
                                                             class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                                                             alt="{{ $product->name }}">
                                                     </div>

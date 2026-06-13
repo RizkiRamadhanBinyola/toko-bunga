@@ -115,4 +115,70 @@
             @endif
         </div>
     </div>
+
+    {{-- Recent Activity Log --}}
+    <div class="mt-8 bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div class="px-6 pt-6 pb-4 flex items-center justify-between">
+            <h2 class="text-lg font-semibold text-gray-900">Aktivitas Admin</h2>
+            <div class="flex items-center gap-2">
+                <form action="{{ route('admin.logs.export') }}" method="GET" class="flex items-center gap-2">
+                    <select name="months" class="text-xs border border-gray-200 rounded-lg px-2 py-1.5 text-gray-600 focus:outline-none focus:ring-1 focus:ring-rose-400">
+                        <option value="1">1 bulan</option>
+                        <option value="3" selected>3 bulan</option>
+                        <option value="6">6 bulan</option>
+                        <option value="12">12 bulan</option>
+                        <option value="0">Semua</option>
+                    </select>
+                    <button type="submit" class="inline-flex items-center gap-1 text-xs font-medium text-white bg-rose-500 hover:bg-rose-600 px-3 py-1.5 rounded-lg transition">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                        </svg>
+                        Download Excel
+                    </button>
+                </form>
+            </div>
+        </div>
+        @if($recentLogs->isEmpty())
+            <p class="px-6 pb-6 text-sm text-gray-400">Belum ada aktivitas.</p>
+        @else
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[400px]">
+                    <thead>
+                        <tr class="border-y border-gray-100 bg-gray-50/50">
+                            <th class="text-left px-6 py-2.5 text-xs font-medium text-gray-400 uppercase tracking-wider whitespace-nowrap">Waktu</th>
+                            <th class="text-left px-6 py-2.5 text-xs font-medium text-gray-400 uppercase tracking-wider whitespace-nowrap">Admin</th>
+                            <th class="text-left px-6 py-2.5 text-xs font-medium text-gray-400 uppercase tracking-wider whitespace-nowrap">Aksi</th>
+                            <th class="text-left px-6 py-2.5 text-xs font-medium text-gray-400 uppercase tracking-wider whitespace-nowrap">IP Address</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50">
+                        @foreach($recentLogs as $log)
+                            <tr class="hover:bg-gray-50/50 transition">
+                                <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-500">
+                                    {{ $log->created_at->diffForHumans() }}
+                                </td>
+                                <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-900">
+                                    {{ $log->user?->name ?? '—' }}
+                                </td>
+                                <td class="px-6 py-3 whitespace-nowrap">
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+                                        {{ $log->action === 'login' ? 'bg-green-50 text-green-700' : '' }}
+                                        {{ $log->action === 'logout' ? 'bg-gray-50 text-gray-600' : '' }}
+                                        {{ !in_array($log->action, ['login', 'logout']) ? 'bg-blue-50 text-blue-700' : '' }}">
+                                        {{ $log->action }}
+                                    </span>
+                                    @if($log->description)
+                                        <span class="text-xs text-gray-400 ml-1">{{ $log->description }}</span>
+                                    @endif
+                                </td>
+                                <td class="px-6 py-3 whitespace-nowrap text-xs text-gray-400 font-mono">
+                                    {{ $log->ip_address ?? '—' }}
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
+    </div>
 </div>

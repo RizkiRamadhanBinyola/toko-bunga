@@ -17,6 +17,9 @@ class ProductDetail extends Component
     // int   = id varian yang dipilih
     public ?int $selectedVariantId = null;
 
+    // Selected payment method name
+    public ?string $selectedPaymentMethod = null;
+
     // Order form
     public string $customerName    = '';
     public string $recipientName   = '';
@@ -132,13 +135,24 @@ class ProductDetail extends Component
         return $images;
     }
 
+    public function selectPaymentMethod(string $name): void
+    {
+        if ($this->selectedPaymentMethod === $name) {
+            $this->selectedPaymentMethod = null;
+        } else {
+            $this->selectedPaymentMethod = $name;
+        }
+    }
+
     public function submitOrder(): void
     {
         $this->validate([
             'customerName'    => 'required|min:2|max:255',
             'recipientName'   => 'required|min:2|max:255',
             'deliveryAddress' => 'required|min:5|max:1000',
-            'deliveryDate'    => 'required|date',
+            'deliveryDate'    => 'required|date|after:yesterday',
+        ], [
+            'deliveryDate.after' => 'Tanggal kirim harus hari ini atau setelahnya.',
         ]);
 
         $waNumber = Setting::get('whatsapp_number', '6281234567890');
@@ -212,6 +226,13 @@ class ProductDetail extends Component
             $msg .= "*CATATAN*\n";
             $msg .= $line . "\n";
             $msg .= $this->notes . "\n";
+        }
+
+        if ($this->selectedPaymentMethod) {
+            $msg .= "\n" . $line . "\n";
+            $msg .= "*METODE PEMBAYARAN*\n";
+            $msg .= $line . "\n";
+            $msg .= "Pembayaran : {$this->selectedPaymentMethod}\n";
         }
 
         $msg .= "\nTerima kasih :)";

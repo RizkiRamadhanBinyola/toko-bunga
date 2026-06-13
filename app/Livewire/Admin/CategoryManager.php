@@ -2,11 +2,12 @@
 
 namespace App\Livewire\Admin;
 
+use App\Models\AdminLog;
 use App\Models\Category;
 use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
-use Livewire\Attributes\Validate;
 use Livewire\Component;
+use Throwable;
 
 #[Layout('layouts.admin')]
 class CategoryManager extends Component
@@ -14,7 +15,6 @@ class CategoryManager extends Component
     public bool $showModal = false;
     public ?int $editId = null;
 
-    #[Validate('required|min:2|max:255')]
     public string $name = '';
 
     public string $slug = '';
@@ -54,25 +54,46 @@ class CategoryManager extends Component
 
     public function save(): void
     {
-        $this->validate();
+        $this->slug = $this->slug ?: Str::slug($this->name);
+
+        $rules = [
+            'name' => 'required|min:2|max:255',
+        ];
+
+        if ($this->editId) {
+            $rules['slug'] = 'required|unique:categories,slug,' . $this->editId;
+        } else {
+            $rules['slug'] = 'required|unique:categories,slug';
+        }
+
+        $this->validate($rules);
 
         $data = [
             'name'      => $this->name,
-            'slug'      => $this->slug ?: Str::slug($this->name),
+            'slug'      => $this->slug,
             'parent_id' => $this->parentId ?: null,
             'status'    => $this->status,
         ];
 
         $isEdit = (bool) $this->editId;
 
-        if ($isEdit) {
-            Category::findOrFail($this->editId)->update($data);
-        } else {
-            Category::create($data);
+        try {
+            if ($isEdit) {
+                Category::findOrFail($this->editId)->update($data);
+            } else {
+                Category::create($data);
+            }
+        } catch (\Throwable $e) {
+            $this->dispatch('show-toast', message: 'Terjadi kesalahan saat menyimpan kategori.', type: 'error');
+            return;
         }
 
         $this->showModal = false;
         $this->resetForm();
+        AdminLog::log(
+            $isEdit ? 'update_category' : 'create_category',
+            "Kategori: {$this->name}"
+        );
         $this->dispatch('show-toast',
             message: $isEdit ? 'Kategori berhasil diperbarui.' : 'Kategori berhasil ditambahkan.',
             type: 'success'
@@ -81,7 +102,14 @@ class CategoryManager extends Component
 
     public function delete(Category $category): void
     {
-        $category->delete();
+        $name = $category->name;
+        try {
+            $category->delete();
+        } catch (Throwable $e) {
+            $this->dispatch('show-toast', message: 'Gagal menghapus kategori.', type: 'error');
+            return;
+        }
+        AdminLog::log('delete_category', "Kategori: {$name}");
         $this->dispatch('show-toast', message: 'Kategori berhasil dihapus.', type: 'success');
     }
 
@@ -98,10 +126,5 @@ class CategoryManager extends Component
     {
         $this->showModal = false;
         $this->resetForm();
-    }
-
-    public function generateSlug(): void
-    {
-        $this->slug = Str::slug($this->name);
     }
 }
