@@ -47,7 +47,7 @@ class ProductCatalog extends Component
     {
         $this->search      = '';
         $this->categorySlug = '';
-        $this->sort        = 'latest';
+        $this->sort        = 'price_asc';
         $this->minPrice    = '';
         $this->maxPrice    = '';
         $this->resetPage();

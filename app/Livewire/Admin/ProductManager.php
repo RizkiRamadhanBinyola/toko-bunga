@@ -5,6 +5,7 @@ namespace App\Livewire\Admin;
 use App\Models\AdminLog;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\ProductImage;
 use App\Models\ProductVariant;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -18,26 +19,22 @@ class ProductManager extends Component
 {
     use WithFileUploads;
 
-    // ── List state ────────────────────────────────────────────────
     public string $search = '';
-
-    // ── Modal state ───────────────────────────────────────────────
     public bool $showModal = false;
     public ?int $editId = null;
 
-    // ── Product fields ────────────────────────────────────────────
     public string $name = '';
     public string $slug = '';
     public string $categoryId = '';
     public string $price = '';
     public string $description = '';
     public bool $status = true;
-    public $thumbnail = null;
-    public ?string $existingThumbnail = null;
 
-    // ── Variants ──────────────────────────────────────────────────
-    // Each item: ['id' => null|int, 'image' => null, 'existingImage' => null, 'description' => '', 'price' => '', 'sort_order' => 0]
+    public array $images = [];
+    public array $existingImages = [];
+
     public array $variants = [];
+    public ?bool $slugAvailable = null;
 
     public function render()
     {
@@ -68,7 +65,7 @@ class ProductManager extends Component
     {
         $this->resetForm();
 
-        $product = Product::with('variants')->findOrFail($id);
+        $product = Product::with(['variants', 'images'])->findOrFail($id);
         $this->editId = $product->id;
         $this->name = $product->name;
         $this->slug = $product->slug;
@@ -76,16 +73,33 @@ class ProductManager extends Component
         $this->price = (string) $product->price;
         $this->description = $product->description ?? '';
         $this->status = $product->status;
-        $this->existingThumbnail = $product->thumbnail;
+
+        $dbImages = $product->images->pluck('image_url')->toArray();
+
+        $allVariantPaths = collect();
+        foreach ($product->variants as $v) {
+            if ($v->image) {
+                $allVariantPaths->push($v->image);
+            }
+            foreach ($v->extra_images ?? [] as $p) {
+                $allVariantPaths->push($p);
+            }
+        }
+
+        $this->existingImages = array_values(array_diff($dbImages, $allVariantPaths->toArray()));
 
         $this->variants = $product->variants->map(fn (ProductVariant $v) => [
-            'id'            => $v->id,
-            'name'          => $v->name ?? '',
-            'image'         => null,
-            'existingImage' => $v->image,
-            'description'   => $v->description ?? '',
-            'price'         => $v->price !== null ? (string) $v->price : '',
-            'sort_order'    => $v->sort_order,
+            'id'              => $v->id,
+            'name'            => $v->name ?? '',
+            'images'          => [],
+            'existingImages'  => array_values(array_unique(array_filter([
+                $v->image,
+                ...($v->extra_images ?? []),
+            ]))),
+            'description'     => $v->description ?? '',
+            'price'           => $v->price !== null ? (string) $v->price : '',
+            'sort_order'      => $v->sort_order,
+            'status'          => $v->status,
         ])->values()->toArray();
 
         $this->showModal = true;
@@ -97,24 +111,50 @@ class ProductManager extends Component
         $this->resetForm();
     }
 
+    // ── Image helpers ─────────────────────────────────────────────
+
+    public function removeImage(int $index): void
+    {
+        unset($this->images[$index]);
+        $this->images = array_values($this->images);
+    }
+
+    public function removeExistingImage(int $index): void
+    {
+        unset($this->existingImages[$index]);
+        $this->existingImages = array_values($this->existingImages);
+    }
+
+    public function removeVariantImage(int $variantIndex, int $imageIndex): void
+    {
+        unset($this->variants[$variantIndex]['images'][$imageIndex]);
+        $this->variants[$variantIndex]['images'] = array_values($this->variants[$variantIndex]['images']);
+    }
+
+    public function removeVariantExistingImage(int $variantIndex, int $imageIndex): void
+    {
+        unset($this->variants[$variantIndex]['existingImages'][$imageIndex]);
+        $this->variants[$variantIndex]['existingImages'] = array_values($this->variants[$variantIndex]['existingImages']);
+    }
+
     // ── Variant helpers ───────────────────────────────────────────
 
     public function addVariant(): void
     {
         $this->variants[] = [
-            'id'            => null,
-            'name'          => '',
-            'image'         => null,
-            'existingImage' => null,
-            'description'   => '',
-            'price'         => '',
-            'sort_order'    => count($this->variants),
+            'id'              => null,
+            'name'            => '',
+            'images'          => [],
+            'existingImages'  => [],
+            'description'     => '',
+            'price'           => '',
+            'sort_order'      => count($this->variants),
+            'status'          => true,
         ];
     }
 
     public function removeVariant(int $index): void
     {
-        // If existing variant, delete from DB immediately on save — just mark for removal
         unset($this->variants[$index]);
         $this->variants = array_values($this->variants);
     }
@@ -131,26 +171,60 @@ class ProductManager extends Component
         }
 
         $this->validate([
-            'name'                => 'required|min:2|max:255',
-            'slug'                => $slugRule,
-            'categoryId'          => 'required|exists:categories,id',
-            'price'               => 'required|numeric|min:0',
-            'thumbnail'           => 'nullable|image|mimes:jpeg,png,webp|max:2048',
-            'variants.*.image'    => 'nullable|image|mimes:jpeg,png,webp|max:2048',
-            'variants.*.price'    => 'nullable|numeric|min:0',
+            'name'                   => 'required|min:2|max:255',
+            'slug'                   => $slugRule,
+            'categoryId'             => 'required|exists:categories,id',
+            'price'                  => 'required|numeric|min:0',
+            'images'                 => 'nullable|array|max:3',
+            'images.*'               => 'image|mimes:jpeg,png,webp|max:2048',
+            'variants.*.images'      => 'nullable|array|max:3',
+            'variants.*.images.*'    => 'image|mimes:jpeg,png,webp|max:2048',
+            'variants.*.price'       => 'nullable|numeric|min:0',
         ], [
-            'name.required'            => 'Nama produk wajib diisi.',
-            'categoryId.required'      => 'Kategori wajib dipilih.',
-            'price.required'           => 'Harga dasar wajib diisi.',
-            'price.numeric'            => 'Harga harus berupa angka.',
-            'thumbnail.image'          => 'Thumbnail harus berupa gambar.',
-            'thumbnail.mimes'          => 'Thumbnail harus bertipe: jpeg, png, webp.',
-            'thumbnail.max'            => 'Thumbnail maksimal 2MB.',
-            'variants.*.image.image'   => 'Gambar varian harus berupa gambar.',
-            'variants.*.image.mimes'   => 'Gambar varian harus bertipe: jpeg, png, webp.',
-            'variants.*.image.max'     => 'Gambar varian maksimal 2MB.',
-            'variants.*.price.numeric' => 'Harga varian harus berupa angka.',
+            'name.required'                => 'Nama produk wajib diisi.',
+            'categoryId.required'          => 'Kategori wajib dipilih.',
+            'price.required'               => 'Harga dasar wajib diisi.',
+            'price.numeric'                => 'Harga harus berupa angka.',
+            'images.*.image'               => 'File harus berupa gambar.',
+            'images.*.mimes'               => 'Gambar harus bertipe: jpeg, png, webp.',
+            'images.*.max'                 => 'Gambar maksimal 2MB.',
+            'variants.*.images.*.image'    => 'Gambar varian harus berupa gambar.',
+            'variants.*.images.*.mimes'    => 'Gambar varian harus bertipe: jpeg, png, webp.',
+            'variants.*.images.*.max'      => 'Gambar varian maksimal 2MB.',
+            'variants.*.price.numeric'     => 'Harga varian harus berupa angka.',
         ]);
+
+        if (count($this->images) + count($this->existingImages) > 3) {
+            $this->addError('images', 'Foto produk maksimal 3.');
+            return;
+        }
+
+        foreach ($this->variants as $i => $v) {
+            if (count($v['images']) + count($v['existingImages']) > 3) {
+                $this->addError("variants.{$i}.images", 'Foto varian maksimal 3.');
+                return;
+            }
+        }
+
+        // ── Handle product images ─────────────────────────────────
+        $imagePaths = $this->existingImages;
+
+        if ($this->editId) {
+            $oldProduct = Product::with('images')->find($this->editId);
+            if ($oldProduct) {
+                $oldPaths = $oldProduct->images->pluck('image_url')->toArray();
+                $removed = array_diff($oldPaths, $this->existingImages);
+                foreach ($removed as $path) {
+                    Storage::disk('public')->delete($path);
+                }
+            }
+        }
+
+        foreach ($this->images as $img) {
+            if ($img) {
+                $imagePaths[] = $img->store('products', 'public');
+            }
+        }
 
         // ── Product data ──────────────────────────────────────────
         $data = [
@@ -160,22 +234,10 @@ class ProductManager extends Component
             'price'       => $this->price,
             'description' => $this->description,
             'status'      => $this->status,
+            'thumbnail'   => $imagePaths[0] ?? null,
         ];
 
         try {
-            if ($this->thumbnail) {
-                if ($this->existingThumbnail) {
-                    Storage::disk('public')->delete($this->existingThumbnail);
-                }
-                $data['thumbnail'] = $this->thumbnail->store('products', 'public');
-            } elseif ($this->existingThumbnail === null && $this->editId) {
-                $product = Product::find($this->editId);
-                if ($product?->thumbnail) {
-                    Storage::disk('public')->delete($product->thumbnail);
-                }
-                $data['thumbnail'] = null;
-            }
-
             if ($this->editId) {
                 $product = Product::findOrFail($this->editId);
                 $product->update($data);
@@ -187,31 +249,57 @@ class ProductManager extends Component
             return;
         }
 
+        // ── Sync product_images table ─────────────────────────────
+        $product->images()->delete();
+        foreach ($imagePaths as $path) {
+            $product->images()->create(['image_url' => $path]);
+        }
+
         // ── Sync variants ─────────────────────────────────────────
         $keptIds = [];
 
-        foreach ($this->variants as $index => $v) {
-            $variantData = [
-                'name'        => $v['name'] ?: null,
-                'description' => $v['description'] ?: null,
-                'price'       => $v['price'] !== '' ? $v['price'] : null,
-                'sort_order'  => $index,
-            ];
-
-            if (! empty($v['image'])) {
-                if (! empty($v['existingImage'])) {
-                    Storage::disk('public')->delete($v['existingImage']);
+        // Collect old variant image paths for cleanup
+        $oldVariantPaths = [];
+        if ($this->editId) {
+            $oldVariants = ProductVariant::where('product_id', $this->editId)->get();
+            foreach ($oldVariants as $ov) {
+                if ($ov->image) $oldVariantPaths[$ov->id][] = $ov->image;
+                foreach ($ov->extra_images ?? [] as $p) {
+                    $oldVariantPaths[$ov->id][] = $p;
                 }
-                $variantData['image'] = $v['image']->store('variants', 'public');
-            } elseif (! empty($v['existingImage'])) {
-                $variantData['image'] = $v['existingImage'];
-            } else {
-                $variantData['image'] = null;
             }
+        }
+
+        foreach ($this->variants as $index => $v) {
+            $allVariantImages = [];
+            foreach ($v['images'] as $img) {
+                if ($img) {
+                    $allVariantImages[] = $img->store('variants', 'public');
+                }
+            }
+            $allVariantImages = array_merge($allVariantImages, $v['existingImages']);
+
+            $variantData = [
+                'name'         => $v['name'] ?: null,
+                'description'  => $v['description'] ?: null,
+                'price'        => $v['price'] !== '' ? $v['price'] : null,
+                'sort_order'   => $index,
+                'image'        => $allVariantImages[0] ?? null,
+                'extra_images' => array_values(array_slice($allVariantImages, 1)),
+                'status'       => $v['status'] ?? true,
+            ];
 
             if (! empty($v['id'])) {
                 $variant = ProductVariant::find($v['id']);
                 if ($variant) {
+                    // Delete old variant images that were removed
+                    $oldForThis = $oldVariantPaths[$variant->id] ?? [];
+                    $newForThis = array_filter($allVariantImages);
+                    $removed = array_diff($oldForThis, $newForThis);
+                    foreach ($removed as $path) {
+                        Storage::disk('public')->delete($path);
+                    }
+
                     $variant->update($variantData);
                     $keptIds[] = $variant->id;
                 }
@@ -221,22 +309,31 @@ class ProductManager extends Component
             }
         }
 
+        // Delete removed variants and their images
         $product->variants()
             ->whereNotIn('id', $keptIds)
             ->each(function (ProductVariant $v) {
                 if ($v->image) {
                     Storage::disk('public')->delete($v->image);
                 }
+                foreach ($v->extra_images ?? [] as $path) {
+                    Storage::disk('public')->delete($path);
+                }
                 $v->delete();
             });
 
+        // Clean up product_images table: remove any records that are variant images
+        $product->images()
+            ->where('image_url', 'like', 'variants/%')
+            ->each(fn (ProductImage $pi) => $pi->delete());
+
         $this->showModal = false;
         $isEdit = (bool) $this->editId;
-        $this->resetForm();
         AdminLog::log(
             $isEdit ? 'update_product' : 'create_product',
             "Produk: {$this->name}"
         );
+        $this->resetForm();
         $this->showToast($isEdit ? 'Produk berhasil diperbarui.' : 'Produk berhasil ditambahkan.');
     }
 
@@ -244,16 +341,22 @@ class ProductManager extends Component
 
     public function delete(int $id): void
     {
-        $product = Product::with('variants')->findOrFail($id);
+        $product = Product::with(['variants', 'images'])->findOrFail($id);
         $name = $product->name;
 
         try {
+            foreach ($product->images as $img) {
+                Storage::disk('public')->delete($img->image_url);
+            }
             if ($product->thumbnail) {
                 Storage::disk('public')->delete($product->thumbnail);
             }
             foreach ($product->variants as $v) {
                 if ($v->image) {
                     Storage::disk('public')->delete($v->image);
+                }
+                foreach ($v->extra_images ?? [] as $path) {
+                    Storage::disk('public')->delete($path);
                 }
             }
 
@@ -276,6 +379,37 @@ class ProductManager extends Component
         }
     }
 
+    protected function checkSlug(): void
+    {
+        $slug = $this->slug ?: Str::slug($this->name);
+
+        if (! $slug) {
+            $this->slugAvailable = null;
+            return;
+        }
+
+        $query = Product::where('slug', $slug);
+        if ($this->editId) {
+            $query->where('id', '!=', $this->editId);
+        }
+
+        $this->slugAvailable = ! $query->exists();
+    }
+
+    public function updatedName(): void
+    {
+        if (! $this->slug) {
+            $this->slug = Str::slug($this->name);
+        }
+        $this->checkSlug();
+    }
+
+    public function updatedSlug(): void
+    {
+        $this->slug = Str::slug($this->slug);
+        $this->checkSlug();
+    }
+
     public function showToast(string $message, string $type = 'success'): void
     {
         $this->dispatch('show-toast', message: $message, type: $type);
@@ -290,8 +424,9 @@ class ProductManager extends Component
         $this->price = '';
         $this->description = '';
         $this->status = true;
-        $this->thumbnail = null;
-        $this->existingThumbnail = null;
+        $this->images = [];
+        $this->existingImages = [];
         $this->variants = [];
+        $this->slugAvailable = null;
     }
 }

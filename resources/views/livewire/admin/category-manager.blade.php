@@ -146,8 +146,9 @@
                         {{-- Slug preview realtime --}}
                         <p
                             x-data="{
+                                name: @entangle('name'),
                                 get slug() {
-                                    return ($wire.name || '')
+                                    return (this.name || '')
                                         .toLowerCase()
                                         .normalize('NFD')
                                         .replace(/[\u0300-\u036f]/g, '')

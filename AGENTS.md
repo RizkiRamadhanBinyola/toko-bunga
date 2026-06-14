@@ -113,3 +113,4 @@ Upload seluruh folder berikut (kecuali yg tidak perlu):
 - **Storage link** harus dibuat manual via route `/setup/storage-link`
 - **HTTPS** → InfinityFree pakai Cloudflare, pastikan `SESSION_SECURE_COOKIE=true`
 - **Error pages** custom sudah tersedia (403, 404, 419, 500, 503)
+- **Livewire file uploads** — Pastikan folder `storage/tmp/` ikut terupload. File `public/.user.ini` akan mengarahkan `upload_tmp_dir` ke folder tsb, dan `AppServiceProvider` set `TMPDIR` env var sebagai fallback. Jika upload foto masih gagal, cek apakah `storage/tmp/` writable (755) di hosting.

@@ -54,7 +54,9 @@ class Product extends Model
      */
     public function getDisplayImageAttribute(): ?string
     {
-        return $this->variants->whereNotNull('image')->first()?->image ?? $this->thumbnail;
+        return $this->variants->whereNotNull('image')->first()?->image
+            ?? $this->images->first()?->image_url
+            ?? $this->thumbnail;
     }
 
     public function scopeActive($query)

@@ -5,7 +5,7 @@
         <div class="flex items-center gap-3">
             <input
                 type="text"
-                wire:model.live.debounce="search"
+                wire:model.live.debounce.300ms="search"
                 placeholder="Cari produk..."
                 class="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none w-48"
             >
@@ -124,7 +124,7 @@
             class="fixed inset-0 z-50 flex items-start justify-center bg-black/40 overflow-y-auto px-4 py-6 sm:py-10"
             x-on:keydown.escape.window="$wire.closeModal()"
         >
-            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-auto flex flex-col max-h-[calc(100dvh-3rem)] sm:max-h-[calc(100dvh-5rem)]">
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl mx-auto flex flex-col max-h-[calc(100dvh-3rem)] sm:max-h-[calc(100dvh-5rem)]">
 
                 {{-- ── Modal Header (sticky) ── --}}
                 <div class="flex items-center justify-between px-5 pt-5 pb-4 border-b border-gray-100 shrink-0">
@@ -182,8 +182,10 @@
                             {{-- Slug preview realtime via Alpine --}}
                             <p
                                 x-data="{
+                                    name: @entangle('name'),
+                                    available: @entangle('slugAvailable'),
                                     get slug() {
-                                        return ($wire.name || '')
+                                        return (this.name || '')
                                             .toLowerCase()
                                             .normalize('NFD')
                                             .replace(/[\u0300-\u036f]/g, '')
@@ -198,7 +200,22 @@
                                 <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
                                 </svg>
-                                <span>URL produk: <span class="font-mono text-gray-500">/product/</span><span x-text="slug || '...'" class="font-mono text-rose-600"></span></span>
+                                <span>
+                                    URL produk:
+                                    <span class="font-mono text-gray-500">/product/</span><span x-text="slug || '...'" class="font-mono text-rose-600"></span>
+                                    <template x-if="available === false">
+                                        <span class="ml-1.5 inline-flex items-center gap-0.5 text-red-500 font-medium">
+                                            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+                                            Sudah dipakai
+                                        </span>
+                                    </template>
+                                    <template x-if="available === true">
+                                        <span class="ml-1.5 inline-flex items-center gap-0.5 text-green-500 font-medium">
+                                            <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                            Tersedia
+                                        </span>
+                                    </template>
+                                </span>
                             </p>
                         </div>
 
@@ -255,13 +272,21 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1.5">
                                 Harga Dasar (Rp) <span class="text-red-500">*</span>
                             </label>
-                            <div class="relative">
+                            <div class="relative" x-data="{ raw: $wire.entangle('price') }">
                                 <span class="absolute inset-y-0 left-0 pl-3.5 flex items-center text-gray-400 text-sm font-medium">Rp</span>
                                 <input
-                                    type="number"
-                                    wire:model="price"
+                                    type="text"
+                                    inputmode="numeric"
+                                    x-init="
+                                        const r = (raw || '').split('.')[0].replace(/\D/g, '');
+                                        $el.value = r !== '' ? parseInt(r, 10).toLocaleString('id-ID') : '';
+                                    "
+                                    @input="
+                                        const n = $el.value.replace(/\D/g, '');
+                                        $el.value = n ? parseInt(n, 10).toLocaleString('id-ID') : '';
+                                        raw = n;
+                                    "
                                     placeholder="150.000"
-                                    min="0"
                                     class="w-full pl-10 pr-3.5 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none transition-shadow"
                                 >
                             </div>
@@ -274,39 +299,67 @@
                             </p>
                         </div>
 
-                        {{-- Thumbnail --}}
+                        {{-- Gallery & Upload --}}
+                        @php $productImgCount = count($images) + count($existingImages); @endphp
                         <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-1.5">Foto Utama</label>
-                            <div class="flex items-start gap-4">
-                                @if($existingThumbnail)
-                                    <div class="shrink-0 relative group">
-                                        <img src="{{ Storage::url($existingThumbnail) }}" class="w-20 h-20 rounded-xl object-cover border-2 border-gray-200 shadow-sm">
-                                        <button
-                                            type="button"
-                                            wire:click="$set('existingThumbnail', null)"
-                                            class="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                                        >
-                                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/>
-                                            </svg>
-                                        </button>
-                                    </div>
-                                @endif
-                                <div class="flex-1 min-w-0">
-                                    <label class="flex flex-col items-center justify-center w-full border-2 border-dashed border-gray-200 rounded-xl py-4 px-3 cursor-pointer hover:border-rose-300 hover:bg-rose-50/50 transition">
-                                        <svg class="w-6 h-6 text-gray-300 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                        </svg>
-                                        <span class="text-xs text-gray-400">
-                                            <span class="text-rose-500 font-medium">Klik untuk upload</span> atau seret foto di sini
-                                        </span>
-                                        <span class="text-xs text-gray-300 mt-0.5">PNG, JPG, WebP (max 2MB)</span>
-                                        <input type="file" wire:model="thumbnail" accept="image/*" class="hidden">
-                                    </label>
-                                    @error('thumbnail') <p class="mt-1.5 text-xs text-red-500 flex items-center gap-1"><svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>{{ $message }}</p> @enderror
-                                </div>
+                            <div class="flex items-center justify-between mb-3">
+                                <label class="block text-sm font-medium text-gray-700">Foto Produk</label>
+                                <span class="text-xs {{ $productImgCount >= 3 ? 'text-red-500 font-semibold' : 'text-gray-400' }}">
+                                    {{ $productImgCount }}/3 foto
+                                </span>
                             </div>
-                            <div wire:loading wire:target="thumbnail" class="mt-2 flex items-center gap-2 text-xs text-rose-500">
+
+                            {{-- Gallery product images only --}}
+                            @if($productImgCount > 0)
+                                <div class="flex flex-wrap gap-3 mb-4">
+                                    @foreach($images as $idx => $img)
+                                        <div class="relative group w-[calc(50%-0.375rem)] sm:w-24">
+                                            <img src="{{ $img->temporaryUrl() }}" class="w-full aspect-square rounded-xl object-cover border-2 border-gray-200 shadow-sm cursor-zoom-in" onclick="window.dispatchEvent(new CustomEvent('lightbox-open', {detail:'{{ str_replace("'", "\\'", $img->temporaryUrl()) }}'}))">
+                                            <button type="button" wire:click="removeImage({{ $idx }})" class="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center shadow-md hover:bg-red-600 transition">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/></svg>
+                                            </button>
+                                            <span class="absolute bottom-1 left-1 text-[10px] bg-black/60 text-white px-1.5 py-0.5 rounded-md">Foto {{ $loop->iteration }}</span>
+                                        </div>
+                                    @endforeach
+                                    @foreach($existingImages as $idx => $path)
+                                        <div class="relative group w-[calc(50%-0.375rem)] sm:w-24">
+                                            <img src="{{ Storage::url($path) }}" class="w-full aspect-square rounded-xl object-cover border-2 border-gray-200 shadow-sm cursor-zoom-in" onclick="window.dispatchEvent(new CustomEvent('lightbox-open', {detail:'{{ str_replace("'", "\\'", Storage::url($path)) }}'}))">
+                                            <button type="button" wire:click="removeExistingImage({{ $idx }})" class="absolute -top-2 -right-2 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center shadow-md hover:bg-red-600 transition">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/></svg>
+                                            </button>
+                                            <span class="absolute bottom-1 left-1 text-[10px] bg-black/60 text-white px-1.5 py-0.5 rounded-md">Foto {{ $loop->iteration }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+
+                            {{-- Upload area (multiple files) --}}
+                            <div
+                                x-data="{ dragging: false }"
+                                x-on:dragover.prevent="dragging = true"
+                                x-on:dragleave.prevent="dragging = false"
+                                x-on:drop.prevent="
+                                    dragging = false;
+                                    if ($event.dataTransfer.files.length) {
+                                        $wire.uploadMultiple('images', $event.dataTransfer.files);
+                                    }
+                                "
+                                x-on:click="$refs.fileInput.click()"
+                                :class="{ 'border-rose-500 bg-rose-50/80 scale-[1.01]': dragging }"
+                                class="flex flex-col items-center justify-center w-full border-2 border-dashed border-gray-200 rounded-xl py-4 px-3 cursor-pointer hover:border-rose-300 hover:bg-rose-50/50 transition-all"
+                            >
+                                <svg class="w-6 h-6 text-gray-300 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                                <span class="text-xs text-gray-400">
+                                    <span class="text-rose-500 font-medium">Klik untuk upload</span> atau seret foto di sini
+                                </span>
+                                <span class="text-xs text-gray-300 mt-0.5">PNG, JPG, WebP (max 2MB, maks 3 foto)</span>
+                                <input type="file" wire:model="images" accept="image/*" multiple class="hidden" x-ref="fileInput">
+                            </div>
+                            @error('images') <p class="mt-1.5 text-xs text-red-500 flex items-center gap-1"><svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>{{ $message }}</p> @enderror
+                            @error('images.*') <p class="mt-1.5 text-xs text-red-500 flex items-center gap-1"><svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>{{ $message }}</p> @enderror
+                            <div wire:loading wire:target="images" class="mt-2 flex items-center gap-2 text-xs text-rose-500">
                                 <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"/>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"/>
@@ -387,16 +440,25 @@
                                                     @endif
                                                 </span>
                                             </div>
-                                            <button
-                                                type="button"
-                                                wire:click="removeVariant({{ $i }})"
-                                                class="p-1 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
-                                                title="Hapus varian"
-                                            >
-                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                                                </svg>
-                                            </button>
+                                            <div class="flex items-center gap-2">
+                                                <label class="relative inline-flex items-center cursor-pointer">
+                                                    <input type="checkbox" wire:model="variants.{{ $i }}.status" class="sr-only peer">
+                                                    <div class="w-8 h-5 bg-gray-200 rounded-full peer peer-checked:bg-purple-400 peer-focus:ring-2 peer-focus:ring-purple-500/30 transition-colors after:content-[''] after:absolute after:top-0.5 after:start-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full"></div>
+                                                    <span class="ml-2 text-xs {{ ($variant['status'] ?? true) ? 'text-green-600' : 'text-gray-400' }}">
+                                                        {{ ($variant['status'] ?? true) ? 'Aktif' : 'Nonaktif' }}
+                                                    </span>
+                                                </label>
+                                                <button
+                                                    type="button"
+                                                    wire:click="removeVariant({{ $i }})"
+                                                    class="p-1 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
+                                                    title="Hapus varian"
+                                                >
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
                                         </div>
 
                                         {{-- Variant body --}}
@@ -414,38 +476,82 @@
                                                 </div>
                                                 <div>
                                                     <label class="block text-xs font-medium text-gray-600 mb-1">Harga (Rp)</label>
-                                                    <input
-                                                        type="number"
-                                                        wire:model="variants.{{ $i }}.price"
-                                                        placeholder="Kosongkan = pakai harga dasar"
-                                                        min="0"
-                                                        class="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none transition-shadow"
-                                                    >
+                                                    <div x-data="{ raw: $wire.entangle('variants.{{ $i }}.price') }">
+                                                        <input
+                                                            type="text"
+                                                            inputmode="numeric"
+                                                            x-init="
+                                                                const r = (raw || '').split('.')[0].replace(/\D/g, '');
+                                                                $el.value = r !== '' ? parseInt(r, 10).toLocaleString('id-ID') : '';
+                                                            "
+                                                            @input="
+                                                                const n = $el.value.replace(/\D/g, '');
+                                                                $el.value = n ? parseInt(n, 10).toLocaleString('id-ID') : '';
+                                                                raw = n;
+                                                            "
+                                                            placeholder="Kosongkan = pakai harga dasar"
+                                                            class="w-full px-3 py-2 border border-gray-200 rounded-lg text-xs focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none transition-shadow"
+                                                        >
+                                                    </div>
                                                     @error("variants.{$i}.price") <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                                                 </div>
                                             </div>
 
                                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                                 <div>
-                                                    <label class="block text-xs font-medium text-gray-600 mb-1">Foto Varian</label>
-                                                    @if(!empty($variant['existingImage']))
-                                                        <div class="mb-2 flex items-center gap-2">
-                                                            <img src="{{ Storage::url($variant['existingImage']) }}" class="w-14 h-14 rounded-lg object-cover border border-gray-200">
-                                                            <button
-                                                                type="button"
-                                                                wire:click="$set('variants.{{ $i }}.existingImage', null)"
-                                                                class="text-xs text-red-500 hover:text-red-700 underline"
-                                                            >Hapus</button>
+                                                    @php $varImgCount = count($variant['images']) + count($variant['existingImages']); @endphp
+                                                    <div class="flex items-center justify-between mb-1">
+                                                        <label class="block text-xs font-medium text-gray-600">Foto Varian</label>
+                                                        <span class="text-xs {{ $varImgCount >= 3 ? 'text-red-500 font-semibold' : 'text-gray-400' }}">
+                                                            {{ $varImgCount }}/3 foto
+                                                        </span>
+                                                    </div>
+                                                    {{-- Variant images gallery --}}
+                                                    @if(count($variant['images']) > 0 || count($variant['existingImages']) > 0)
+                                                        <div class="flex flex-wrap gap-2 mb-2">
+                                                            @foreach($variant['images'] as $ii => $img)
+                                                                 <div class="relative group">
+                                                                      <img src="{{ $img->temporaryUrl() }}" class="w-14 h-14 sm:w-16 sm:h-16 rounded-lg object-cover border border-gray-200 cursor-zoom-in" onclick="window.dispatchEvent(new CustomEvent('lightbox-open', {detail:'{{ str_replace("'", "\\'", $img->temporaryUrl()) }}'}))">
+                                                                      <button type="button" wire:click="removeVariantImage({{ $i }}, {{ $ii }})" class="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center shadow hover:bg-red-600 transition">
+                                                                          <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/></svg>
+                                                                      </button>
+                                                                  </div>
+                                                              @endforeach
+                                                              @foreach($variant['existingImages'] as $ii => $path)
+                                                                  <div class="relative group">
+                                                                      <img src="{{ Storage::url($path) }}" class="w-14 h-14 sm:w-16 sm:h-16 rounded-lg object-cover border border-gray-200 cursor-zoom-in" onclick="window.dispatchEvent(new CustomEvent('lightbox-open', {detail:'{{ str_replace("'", "\\'", Storage::url($path)) }}'}))">
+                                                                     <button type="button" wire:click="removeVariantExistingImage({{ $i }}, {{ $ii }})" class="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white rounded-full flex items-center justify-center shadow hover:bg-red-600 transition">
+                                                                         <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/></svg>
+                                                                     </button>
+                                                                 </div>
+                                                             @endforeach
                                                         </div>
                                                     @endif
-                                                    <label class="flex items-center gap-2 w-full border border-dashed border-gray-200 rounded-lg py-2.5 px-3 cursor-pointer hover:border-purple-300 hover:bg-purple-50/50 transition">
-                                                        <svg class="w-4 h-4 text-gray-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <label
+                                                        x-data="{ dragging: false }"
+                                                        x-on:dragover.prevent="dragging = true"
+                                                        x-on:dragleave.prevent="dragging = false"
+                                                        x-on:drop.prevent="
+                                                            dragging = false;
+                                                            if ($event.dataTransfer.files.length) {
+                                                                $wire.uploadMultiple('variants.{{ $i }}.images', $event.dataTransfer.files);
+                                                            }
+                                                        "
+                                                        x-on:click="$refs.fileInput.click()"
+                                                        :class="{ 'border-purple-400 bg-purple-50/80': dragging }"
+                                                        class="flex flex-col items-center justify-center w-full border border-dashed border-gray-200 rounded-lg py-5 px-3 cursor-pointer hover:border-purple-300 hover:bg-purple-50/50 transition"
+                                                    >
+                                                        <svg class="w-5 h-5 text-gray-300 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
                                                         </svg>
-                                                        <span class="text-xs text-gray-400">Upload foto</span>
-                                                        <input type="file" wire:model="variants.{{ $i }}.image" accept="image/*" class="hidden">
+                                                        <span class="text-xs text-gray-400">
+                                                            <span class="text-purple-500 font-medium">Klik untuk upload</span> atau seret foto
+                                                        </span>
+                                                        <span class="text-[10px] text-gray-300 mt-0.5">PNG, JPG, WebP (max 2MB)</span>
+                                                        <input type="file" wire:model="variants.{{ $i }}.images" accept="image/*" multiple class="hidden" x-ref="fileInput">
                                                     </label>
-                                                    @error("variants.{$i}.image") <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                                                    @error("variants.{$i}.images") <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                                                    @error("variants.{$i}.images.*") <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                                                 </div>
                                                 <div>
                                                     <label class="block text-xs font-medium text-gray-600 mb-1">Deskripsi Varian</label>
@@ -487,6 +593,66 @@
                         @endif
                     </div>
                 </form>
+
+                {{-- Admin lightbox --}}
+                @php
+                    $lbImages = [];
+                    foreach ($images as $img) $lbImages[] = $img->temporaryUrl();
+                    foreach ($existingImages as $p) $lbImages[] = Storage::url($p);
+                    foreach ($variants as $v) {
+                        foreach ($v['images'] as $img) $lbImages[] = $img->temporaryUrl();
+                        foreach ($v['existingImages'] as $p) $lbImages[] = Storage::url($p);
+                    }
+                @endphp
+                @if(!empty($lbImages))
+                    <div
+                        x-data="{
+                            lbOpen: false,
+                            lbIndex: 0,
+                            get lbImages() {
+                                let el = this.$el.closest('[data-lb]');
+                                try { return el ? JSON.parse(atob(el.dataset.lb)) : []; } catch(e) { return []; }
+                            },
+                            openLb(src) {
+                                let i = this.lbImages.indexOf(src);
+                                if (i >= 0) { this.lbIndex = i; this.lbOpen = true; document.body.style.overflow = 'hidden'; }
+                            },
+                            closeLb() { this.lbOpen = false; document.body.style.overflow = ''; },
+                            lbPrev() { this.lbIndex = this.lbIndex === 0 ? this.lbImages.length - 1 : this.lbIndex - 1; },
+                            lbNext() { this.lbIndex = this.lbIndex === this.lbImages.length - 1 ? 0 : this.lbIndex + 1; },
+                        }"
+                        data-lb="{{ base64_encode(json_encode($lbImages)) }}"
+                        x-on:lightbox-open.window="openLb($event.detail)"
+                    >
+                        <template x-if="lbOpen">
+                            <div
+                                class="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center"
+                                @click.self="closeLb"
+                                @keydown.escape.window="closeLb"
+                            >
+                                <button @click="closeLb" class="absolute top-4 right-4 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition z-10">
+                                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
+
+                                <template x-if="lbImages.length > 1">
+                                    <button @click="lbPrev" class="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition z-10">
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                                    </button>
+                                </template>
+
+                                <img :key="lbIndex" :src="lbImages[lbIndex]" class="max-w-[90vw] max-h-[85vh] object-contain select-none rounded-lg">
+
+                                <template x-if="lbImages.length > 1">
+                                    <button @click="lbNext" class="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition z-10">
+                                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                    </button>
+                                </template>
+
+                                <div class="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/70 text-sm font-medium bg-black/30 px-3 py-1.5 rounded-full" x-text="(lbIndex + 1) + ' / ' + lbImages.length"></div>
+                            </div>
+                        </template>
+                    </div>
+                @endif
 
                 {{-- ── Modal Footer (sticky) ── --}}
                 <div class="px-5 py-4 border-t border-gray-100 bg-gray-50/80 rounded-b-2xl shrink-0">

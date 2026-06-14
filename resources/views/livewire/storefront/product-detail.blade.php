@@ -6,7 +6,6 @@
 @section('og_image', $product->display_image ? \Illuminate\Support\Facades\Storage::url($product->display_image) : '')
 @section('og_type', 'product')
 <div>
-    @php use Illuminate\Support\Str; @endphp
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
         {{-- Breadcrumb --}}
@@ -31,7 +30,9 @@
                     images: {{ json_encode($images) }},
                     storageBase: '{{ rtrim(\Illuminate\Support\Facades\Storage::url(''), '/') }}',
                     autoplayInterval: null,
-                    autoplayDelay: 3500,
+                    autoplayDelay: 8000,
+                    lightboxOpen: false,
+                    lightboxIndex: 0,
                     get currentImage() {
                         return this.images[this.current]?.image ?? null;
                     },
@@ -69,6 +70,23 @@
                     restartAutoplay() {
                         this.stopAutoplay();
                         this.startAutoplay();
+                    },
+                    openLightbox(i) {
+                        this.lightboxIndex = i;
+                        this.lightboxOpen = true;
+                        this.stopAutoplay();
+                        document.body.style.overflow = 'hidden';
+                    },
+                    closeLightbox() {
+                        this.lightboxOpen = false;
+                        this.startAutoplay();
+                        document.body.style.overflow = '';
+                    },
+                    lightboxPrev() {
+                        this.lightboxIndex = this.lightboxIndex === 0 ? this.images.length - 1 : this.lightboxIndex - 1;
+                    },
+                    lightboxNext() {
+                        this.lightboxIndex = this.lightboxIndex === this.images.length - 1 ? 0 : this.lightboxIndex + 1;
                     }
                 }"
                 x-init="startAutoplay()"
@@ -84,11 +102,12 @@
                         <img
                             :key="current"
                             :src="storageBase + '/' + currentImage"
-                            class="w-full h-full object-cover transition-opacity duration-500"
+                            class="w-full h-full object-contain p-4 transition-opacity duration-500 cursor-zoom-in"
                             x-transition:enter="transition ease-out duration-500"
                             x-transition:enter-start="opacity-0 scale-105"
                             x-transition:enter-end="opacity-100 scale-100"
                             :alt="'{{ $product->name }}'"
+                            @click="openLightbox(current)"
                         >
                     </template>
                     <template x-if="!currentImage">
@@ -140,7 +159,7 @@
                     <div class="mt-3 flex gap-2 overflow-x-auto pb-1">
                         <template x-for="(img, i) in images" :key="i">
                             <button
-                                @click="goTo(i)"
+                                @click="goTo(i); openLightbox(i)"
                                 class="shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition"
                                 :class="current === i ? 'border-rose-500' : 'border-transparent hover:border-rose-200'"
                             >
@@ -158,6 +177,38 @@
                         </template>
                     </div>
                 @endif
+                {{-- Lightbox overlay --}}
+                <template x-if="lightboxOpen">
+                    <div
+                        class="fixed inset-0 z-[100] bg-black/90 flex items-center justify-center"
+                        @click.self="closeLightbox"
+                        @keydown.escape.window="closeLightbox"
+                    >
+                        <button @click="closeLightbox" class="absolute top-4 right-4 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition z-10">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+
+                        <template x-if="images.length > 1">
+                            <button @click="lightboxPrev" class="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition z-10">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                            </button>
+                        </template>
+
+                        <img
+                            :key="lightboxIndex"
+                            :src="storageBase + '/' + images[lightboxIndex]?.image"
+                            class="max-w-[90vw] max-h-[85vh] object-contain select-none"
+                        >
+
+                        <template x-if="images.length > 1">
+                            <button @click="lightboxNext" class="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center transition z-10">
+                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                            </button>
+                        </template>
+
+                        <div class="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/70 text-sm font-medium bg-black/30 px-3 py-1.5 rounded-full" x-text="(lightboxIndex + 1) + ' / ' + images.length"></div>
+                    </div>
+                </template>
             </div>
 
             {{-- ── Product Info + Order Form ───────────────────────── --}}
@@ -305,7 +356,7 @@
                                     @foreach($paymentMethods as $pm)
                                         <button
                                             type="button"
-                                            wire:click="selectPaymentMethod('{{ $pm['name'] }}')"
+                                            wire:click="selectPaymentMethod('{{ addslashes($pm['name']) }}')"
                                             class="flex items-center justify-center p-3 rounded-xl border-2 transition-all
                                                 {{ $selectedPaymentMethod === $pm['name']
                                                     ? 'border-rose-500 bg-rose-50 shadow-sm shadow-rose-100'
