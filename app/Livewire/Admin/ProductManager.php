@@ -398,9 +398,7 @@ class ProductManager extends Component
 
     public function updatedName(): void
     {
-        if (! $this->slug) {
-            $this->slug = Str::slug($this->name);
-        }
+        $this->slug = Str::slug($this->name);
         $this->checkSlug();
     }
 

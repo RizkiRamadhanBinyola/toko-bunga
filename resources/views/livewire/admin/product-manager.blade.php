@@ -179,21 +179,11 @@
                                 class="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl text-sm focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none transition-shadow"
                             >
                             @error('name') <p class="mt-1.5 text-xs text-red-500 flex items-center gap-1"><svg class="w-3.5 h-3.5 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>{{ $message }}</p> @enderror
-                            {{-- Slug preview realtime via Alpine --}}
+                            {{-- Slug preview + input --}}
                             <p
                                 x-data="{
-                                    name: @entangle('name'),
                                     available: @entangle('slugAvailable'),
-                                    get slug() {
-                                        return (this.name || '')
-                                            .toLowerCase()
-                                            .normalize('NFD')
-                                            .replace(/[\u0300-\u036f]/g, '')
-                                            .replace(/[^a-z0-9\s-]/g, '')
-                                            .trim()
-                                            .replace(/[\s_]+/g, '-')
-                                            .replace(/-+/g, '-');
-                                    }
+                                    slug: @entangle('slug'),
                                 }"
                                 class="mt-1.5 text-xs text-gray-400 flex items-center gap-1.5"
                             >
@@ -201,8 +191,7 @@
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
                                 </svg>
                                 <span>
-                                    URL produk:
-                                    <span class="font-mono text-gray-500">/product/</span><span x-text="slug || '...'" class="font-mono text-rose-600"></span>
+                                    URL produk: <span class="font-mono text-gray-500">/product/</span><span x-text="slug || '...'" class="font-mono text-rose-600"></span>
                                     <template x-if="available === false">
                                         <span class="ml-1.5 inline-flex items-center gap-0.5 text-red-500 font-medium">
                                             <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
@@ -217,6 +206,17 @@
                                     </template>
                                 </span>
                             </p>
+                            {{-- Slug manual edit --}}
+                            <div class="mt-2">
+                                <label class="block text-xs text-gray-400 mb-1">Kustom slug (opsional — kosongkan untuk auto-generate)</label>
+                                <input
+                                    type="text"
+                                    wire:model.live.debounce.300ms="slug"
+                                    placeholder="biarkan kosong untuk auto-generate dari nama"
+                                    class="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-mono text-gray-600 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none transition-shadow"
+                                >
+                                @error('slug') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
+                            </div>
                         </div>
 
                         {{-- Kategori --}}
