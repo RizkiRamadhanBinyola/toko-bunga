@@ -29,8 +29,6 @@
                     current: 0,
                     images: {{ json_encode($images) }},
                     storageBase: '{{ rtrim(\Illuminate\Support\Facades\Storage::url(''), '/') }}',
-                    autoplayInterval: null,
-                    autoplayDelay: 8000,
                     lightboxOpen: false,
                     lightboxIndex: 0,
                     get currentImage() {
@@ -38,15 +36,12 @@
                     },
                     prev() {
                         this.current = this.current === 0 ? this.images.length - 1 : this.current - 1;
-                        this.restartAutoplay();
                     },
                     next() {
                         this.current = this.current === this.images.length - 1 ? 0 : this.current + 1;
-                        this.restartAutoplay();
                     },
                     goTo(i) {
                         this.current = i;
-                        this.restartAutoplay();
                     },
                     goToVariant(variantId) {
                         if (variantId === null) {
@@ -55,31 +50,14 @@
                             let idx = this.images.findIndex(img => img.variantId == variantId);
                             if (idx >= 0) this.current = idx;
                         }
-                        this.restartAutoplay();
-                    },
-                    startAutoplay() {
-                        if (this.images.length <= 1) return;
-                        this.autoplayInterval = setInterval(() => {
-                            this.current = this.current === this.images.length - 1 ? 0 : this.current + 1;
-                        }, this.autoplayDelay);
-                    },
-                    stopAutoplay() {
-                        clearInterval(this.autoplayInterval);
-                        this.autoplayInterval = null;
-                    },
-                    restartAutoplay() {
-                        this.stopAutoplay();
-                        this.startAutoplay();
                     },
                     openLightbox(i) {
                         this.lightboxIndex = i;
                         this.lightboxOpen = true;
-                        this.stopAutoplay();
                         document.body.style.overflow = 'hidden';
                     },
                     closeLightbox() {
                         this.lightboxOpen = false;
-                        this.startAutoplay();
                         document.body.style.overflow = '';
                     },
                     lightboxPrev() {
@@ -89,14 +67,11 @@
                         this.lightboxIndex = this.lightboxIndex === this.images.length - 1 ? 0 : this.lightboxIndex + 1;
                     }
                 }"
-                x-init="startAutoplay()"
                 x-on:variant-changed.window="goToVariant($event.detail.variantId)"
             >
                 {{-- Main image --}}
                 <div
                     class="relative aspect-square bg-gray-50 rounded-2xl overflow-hidden"
-                    @mouseenter="stopAutoplay()"
-                    @mouseleave="startAutoplay()"
                 >
                     <template x-if="currentImage">
                         <img
@@ -362,8 +337,9 @@
                                                     ? 'border-rose-500 bg-rose-50 shadow-sm shadow-rose-100'
                                                     : 'border-gray-200 bg-white hover:border-rose-300' }}"
                                         >
-                                            @if($pm['logo'])
-                                                <img src="{{ Storage::url($pm['logo']) }}" alt="{{ $pm['name'] }}" class="h-10 w-auto object-contain">
+                                            @php $logoSrc = $pm['logo'] ? (str_starts_with($pm['logo'], 'uploads/') ? asset($pm['logo']) : Storage::url($pm['logo'])) : null; @endphp
+                                            @if($logoSrc)
+                                                <img src="{{ $logoSrc }}" alt="{{ $pm['name'] }}" class="h-10 w-auto object-contain">
                                             @endif
                                             @if($selectedPaymentMethod === $pm['name'])
                                                 <svg class="w-4 h-4 text-rose-500 -ml-1" fill="currentColor" viewBox="0 0 20 20">

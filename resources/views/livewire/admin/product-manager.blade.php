@@ -206,17 +206,7 @@
                                     </template>
                                 </span>
                             </p>
-                            {{-- Slug manual edit --}}
-                            <div class="mt-2">
-                                <label class="block text-xs text-gray-400 mb-1">Kustom slug (opsional — kosongkan untuk auto-generate)</label>
-                                <input
-                                    type="text"
-                                    wire:model.live.debounce.300ms="slug"
-                                    placeholder="biarkan kosong untuk auto-generate dari nama"
-                                    class="w-full px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-mono text-gray-600 focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none transition-shadow"
-                                >
-                                @error('slug') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
-                            </div>
+
                         </div>
 
                         {{-- Kategori --}}

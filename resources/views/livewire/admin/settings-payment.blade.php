@@ -16,10 +16,15 @@
                             <div>
                                 <label class="block text-xs font-medium text-gray-500 mb-1">Logo</label>
                                 <input type="file" wire:model="paymentMethods.{{ $index }}.logo" accept="image/*" class="w-full text-xs text-gray-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-medium file:bg-rose-50 file:text-rose-600 hover:file:bg-rose-100">
-                                @php $logoVal = $method['logo'] ?? ''; @endphp
-                                @if($logoVal && is_string($logoVal))
+                                @php
+                                    $logoVal = $method['logo'] ?? '';
+                                    $logoSrc = $logoVal && is_string($logoVal)
+                                        ? (str_starts_with($logoVal, 'uploads/') ? asset($logoVal) : Storage::url($logoVal))
+                                        : null;
+                                @endphp
+                                @if($logoSrc)
                                     <div class="mt-2">
-                                        <img src="{{ Storage::url($logoVal) }}" class="h-10 object-contain rounded border border-gray-200 bg-white p-1">
+                                        <img src="{{ $logoSrc }}" class="h-10 object-contain rounded border border-gray-200 bg-white p-1">
                                     </div>
                                 @endif
                             </div>

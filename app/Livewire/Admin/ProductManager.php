@@ -163,7 +163,7 @@ class ProductManager extends Component
 
     public function save(): void
     {
-        $this->slug = $this->slug ?: Str::slug($this->name);
+        $this->slug = Str::slug($this->name);
 
         $slugRule = 'required|unique:products,slug';
         if ($this->editId) {
@@ -371,13 +371,6 @@ class ProductManager extends Component
     }
 
     // ── Helpers ───────────────────────────────────────────────────
-
-    public function generateSlug(): void
-    {
-        if (! $this->slug) {
-            $this->slug = Str::slug($this->name);
-        }
-    }
 
     protected function checkSlug(): void
     {

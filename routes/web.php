@@ -32,6 +32,16 @@ Route::get('/setup/storage-link', function () {
     return 'Storage link created!';
 });
 
+// Fallback untuk hosting tanpa symlink (InfinityFree)
+Route::get('/storage-file/{path}', function (string $path) {
+    $fullPath = storage_path('app/public/'.$path);
+    if (! file_exists($fullPath)) {
+        abort(404);
+    }
+    $mime = mime_content_type($fullPath) ?: 'application/octet-stream';
+    return response()->file($fullPath, ['Content-Type' => $mime]);
+})->where('path', '.*');
+
 // ─── Storefront ───────────────────────────────────────────────────────────────
 Route::get('/', Homepage::class)->name('home');
 Route::get('/products', ProductCatalog::class)->name('products');

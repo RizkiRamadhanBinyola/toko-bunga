@@ -4,6 +4,7 @@ namespace App\Livewire\Admin;
 
 use App\Models\AdminLog;
 use App\Models\Setting as SettingModel;
+use Illuminate\Support\Str;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithFileUploads;
@@ -32,7 +33,23 @@ class SettingsPayment extends Component
         foreach ($this->paymentMethods as $method) {
             $logo = $method['logo'] ?? '';
             if ($logo instanceof \Livewire\Features\SupportFileUploads\TemporaryUploadedFile) {
-                $logo = $logo->store('payment-logos', 'public');
+                $extension = $logo->getClientOriginalExtension() ?: 'jpg';
+                $filename = Str::random(40) . '.' . $extension;
+                $relPath = 'uploads/payment-logos/' . $filename;
+                $destPath = public_path($relPath);
+
+                $dir = dirname($destPath);
+                if (!is_dir($dir)) {
+                    mkdir($dir, 0755, true);
+                }
+
+                $written = file_put_contents($destPath, $logo->get());
+                if ($written === false) {
+                    $this->dispatch('show-toast', message: 'Gagal menulis file logo.', type: 'error');
+                    return;
+                }
+
+                $logo = $relPath;
             }
             $processed[] = [
                 'name' => $method['name'] ?? '',
